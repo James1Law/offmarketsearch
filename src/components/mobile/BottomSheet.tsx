@@ -90,7 +90,7 @@ export function BottomSheet({ children, initialSnap = 0, header, footer }: Botto
   return (
     <div
       ref={sheetRef}
-      className="absolute inset-x-0 bottom-0 z-20 bg-white border-t border-slate-200 rounded-t-2xl flex flex-col"
+      className="absolute inset-x-0 bottom-0 z-20 bg-white border-t border-sand rounded-t-2xl flex flex-col"
       style={{
         height: `${clampedRatio * 100}%`,
         transition: dragging ? "none" : "height 220ms cubic-bezier(0.2, 0.8, 0.2, 1)",
@@ -107,11 +107,11 @@ export function BottomSheet({ children, initialSnap = 0, header, footer }: Botto
         role="button"
         aria-label="Drag to resize sheet"
       >
-        <div className="w-10 h-1 mx-auto rounded-full bg-slate-300" />
+        <div className="w-10 h-1 mx-auto rounded-full bg-navy-soft/30" />
       </div>
       {header && <div className="shrink-0">{header}</div>}
       <div className="flex-1 overflow-y-auto overscroll-contain">{children}</div>
-      {footer && <div className="shrink-0 border-t border-slate-100">{footer}</div>}
+      {footer && <div className="shrink-0 border-t border-sand">{footer}</div>}
     </div>
   )
 }

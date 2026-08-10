@@ -1,11 +1,11 @@
 import { StepNav } from "@/components/step-nav"
 import { BasketSummary } from "@/features/basket/components/BasketSummary"
 
-export const metadata = { title: "Review & pay — LetterDrop" }
+export const metadata = { title: "Review & pay — Offline.homes" }
 
 export default function BasketPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
+    <div className="flex flex-col min-h-screen bg-cream">
       <StepNav />
       <main className="flex-1">
         <BasketSummary />

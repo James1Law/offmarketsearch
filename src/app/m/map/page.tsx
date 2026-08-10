@@ -1,6 +1,6 @@
 import { MobileMapPageClient } from "@/features/map/components/MobileMapPageClient"
 
-export const metadata = { title: "Find houses — LetterDrop" }
+export const metadata = { title: "Find houses — Offline.homes" }
 
 export default function MobileMapPage() {
   return (

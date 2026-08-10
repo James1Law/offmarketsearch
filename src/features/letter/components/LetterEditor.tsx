@@ -48,15 +48,15 @@ export function LetterEditor({ initial, onChange }: LetterEditorProps) {
 
         return (
           <div key={field} className="flex flex-col gap-1">
-            <label className="text-sm font-medium text-slate-700">{FIELD_LABELS[field]}</label>
-            <p className="text-xs text-slate-500">{FIELD_HINTS[field]}</p>
+            <label className="text-sm font-medium text-navy">{FIELD_LABELS[field]}</label>
+            <p className="text-xs text-navy-soft">{FIELD_HINTS[field]}</p>
             {isTextarea ? (
               <textarea
                 value={value}
                 onChange={(e) => set(field, e.target.value)}
                 maxLength={maxLen}
                 rows={field === "personalMessage" ? 5 : 3}
-                className="text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                className="text-sm border border-sand rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral resize-none"
                 placeholder={FIELD_HINTS[field]}
               />
             ) : (
@@ -65,11 +65,11 @@ export function LetterEditor({ initial, onChange }: LetterEditorProps) {
                 value={value}
                 onChange={(e) => set(field, e.target.value)}
                 maxLength={maxLen}
-                className="text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="text-sm border border-sand rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral"
                 placeholder={FIELD_HINTS[field]}
               />
             )}
-            <span className="text-xs text-slate-400 text-right">
+            <span className="text-xs text-navy-soft/70 text-right">
               {value.length}/{maxLen}
             </span>
           </div>

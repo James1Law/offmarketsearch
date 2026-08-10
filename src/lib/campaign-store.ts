@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react"
 import type { CampaignState, SelectedAddress, LetterContent } from "@/types"
 
-const STORAGE_KEY = "off-market-campaign"
+const STORAGE_KEY = "offline-homes-campaign"
 
 const defaultState: CampaignState = {
   selectedAddresses: [],

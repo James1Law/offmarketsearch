@@ -2,7 +2,7 @@ import { z } from "zod"
 import { NominatimResultSchema } from "@/types"
 
 const BASE = "https://nominatim.openstreetmap.org"
-const HEADERS = { "Accept-Language": "en-GB", "User-Agent": "off-market-search/1.0" }
+const HEADERS = { "Accept-Language": "en-GB", "User-Agent": "offline.homes/1.0" }
 
 export async function searchPlaces(query: string): Promise<z.infer<typeof NominatimResultSchema>[]> {
   if (!query.trim()) return []

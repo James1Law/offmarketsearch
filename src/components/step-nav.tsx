@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { Logo } from "@/components/logo"
 
 const STEPS = [
   { href: "/map", label: "1. Find houses" },
@@ -14,10 +15,10 @@ export function StepNav() {
   const currentIndex = STEPS.findIndex((s) => pathname.startsWith(s.href))
 
   return (
-    <header className="border-b border-slate-200 bg-white">
+    <header className="border-b border-sand bg-cream">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link href="/" className="font-semibold text-slate-900 tracking-tight">
-          LetterDrop
+        <Link href="/">
+          <Logo markClassName="w-6 h-6" textClassName="text-base" />
         </Link>
         <nav className="flex items-center gap-1 text-sm">
           {STEPS.map((step, i) => {
@@ -25,14 +26,14 @@ export function StepNav() {
             const isCurrent = currentIndex === i
             return (
               <span key={step.href} className="flex items-center gap-1">
-                {i > 0 && <span className="text-slate-300 px-1">›</span>}
+                {i > 0 && <span className="text-navy-soft/40 px-1">›</span>}
                 <span
                   className={
                     isCurrent
-                      ? "font-semibold text-indigo-600"
+                      ? "font-semibold text-coral"
                       : isPast
-                        ? "text-slate-500"
-                        : "text-slate-400"
+                        ? "text-navy-soft"
+                        : "text-navy-soft/60"
                   }
                 >
                   {step.label}

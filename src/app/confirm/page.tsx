@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { StepNav } from "@/components/step-nav"
 
-export const metadata = { title: "Letters sent! — LetterDrop" }
+export const metadata = { title: "Letters sent! — Offline.homes" }
 
 const NEXT_STEPS = [
   {
@@ -25,17 +25,17 @@ const NEXT_STEPS = [
 
 export default function ConfirmPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50">
+    <div className="flex flex-col min-h-screen bg-cream">
       <StepNav />
       <main className="flex-1 flex flex-col items-center justify-start px-4 py-12">
         <div className="max-w-xl w-full flex flex-col gap-8">
           {/* Success card */}
-          <div className="bg-white border border-slate-200 rounded-2xl px-6 py-8 text-center shadow-sm">
+          <div className="bg-white border border-sand rounded-2xl px-6 py-8 text-center shadow-sm">
             <div className="w-14 h-14 rounded-full bg-green-100 text-green-600 text-2xl flex items-center justify-center mx-auto mb-4">
               ✓
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">Your letters are on their way!</h1>
-            <p className="text-slate-600 text-sm">
+            <h1 className="text-2xl font-bold text-navy mb-2">Your letters are on their way!</h1>
+            <p className="text-navy-soft text-sm">
               In a real order, your letters would now be printed and posted. This is a demo — no
               payment was taken and no letters were sent.
             </p>
@@ -43,17 +43,17 @@ export default function ConfirmPage() {
 
           {/* What happens next */}
           <section>
-            <h2 className="text-base font-semibold text-slate-900 mb-4">What happens next</h2>
+            <h2 className="text-base font-semibold text-navy mb-4">What happens next</h2>
             <div className="flex flex-col gap-3">
               {NEXT_STEPS.map((step) => (
                 <div
                   key={step.title}
-                  className="bg-white border border-slate-200 rounded-xl px-4 py-4 flex items-start gap-4"
+                  className="bg-white border border-sand rounded-xl px-4 py-4 flex items-start gap-4"
                 >
-                  <span className="w-7 h-7 rounded-full bg-indigo-100 text-indigo-700 text-xs font-bold flex items-center justify-center shrink-0">{step.icon}</span>
+                  <span className="w-7 h-7 rounded-full bg-coral-soft text-coral-dark text-xs font-bold flex items-center justify-center shrink-0">{step.icon}</span>
                   <div>
-                    <div className="text-sm font-semibold text-slate-900">{step.title}</div>
-                    <div className="text-sm text-slate-500 mt-0.5">{step.description}</div>
+                    <div className="text-sm font-semibold text-navy">{step.title}</div>
+                    <div className="text-sm text-navy-soft mt-0.5">{step.description}</div>
                   </div>
                 </div>
               ))}
@@ -64,13 +64,13 @@ export default function ConfirmPage() {
           <div className="flex flex-col gap-3">
             <Link
               href="/map"
-              className="w-full text-center py-2.5 rounded-lg font-semibold text-sm bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+              className="w-full text-center py-2.5 rounded-lg font-semibold text-sm bg-coral hover:bg-coral-dark text-white transition-colors"
             >
               Send letters to another area
             </Link>
             <Link
               href="/"
-              className="w-full text-center py-2.5 rounded-lg font-semibold text-sm border border-slate-300 hover:bg-slate-50 text-slate-700 transition-colors"
+              className="w-full text-center py-2.5 rounded-lg font-semibold text-sm border border-sand hover:bg-cream text-navy transition-colors"
             >
               Back to home
             </Link>

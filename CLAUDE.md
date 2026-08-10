@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-**Off-Market Property Letter Service** — B2C Next.js web app. UK home movers draw a map area, select specific addresses, compose a templated letter, pay via Stripe, and the app posts physical letters via the Stannp API. The business plan is in `business-plan.md`.
+**Offline.homes** (offline.homes) — B2C Next.js web app for off-market property letters. UK home movers draw a map area, select specific addresses, compose a templated letter, pay via Stripe, and the app posts physical letters via the Stannp API. The business plan is in `business-plan.md`.
 
 ---
 
@@ -146,6 +146,10 @@ Import `env` from `lib/env.ts` everywhere. Never access `process.env` directly i
 - Auto-followups, investor analytics, mobile app
 
 ---
+
+## Brand
+
+Name is always written **Offline.homes** (capital O, with the dot; the dot renders coral in UI — use the `Logo` component in `src/components/logo.tsx`). Colours and font (Poppins) are defined as Tailwind `@theme` tokens in `src/app/globals.css` (`coral`, `coral-dark`, `coral-soft`, `navy`, `navy-soft`, `cream`, `sand`) — use the tokens, never raw hex or indigo/slate palette classes. Full brand spec: `docs/REBRAND_PLAN.md`.
 
 ## Critical constraints
 
