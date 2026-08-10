@@ -16,17 +16,19 @@ export default function AppleIcon() {
           backgroundColor: "#fbf3e7",
         }}
       >
-        <svg width="132" height="132" viewBox="0 0 64 64" fill="none">
-          <rect x="43.5" y="5" width="10.5" height="20" rx="2.5" fill="#f4795b" />
+        <svg width="150" height="150" viewBox="0 0 100 100" fill="none">
+          <rect x="72" y="12" width="10" height="32" rx="3" fill="#f4795b" />
+          <path d="M14.5 44V82a9.5 9.5 0 0 0 9.5 9.5h52a9.5 9.5 0 0 0 9.5-9.5V44" fill="#faf2ed" stroke="#f4795b" strokeWidth="9.5" />
+          <rect x="15" y="48" width="70" height="43" rx="7" fill="#f9d2a0" />
+          <path d="M15 48 50 86 15 86Z" fill="rgba(255,255,255,0.22)" />
+          <path d="M85 48 50 86 85 86Z" fill="rgba(255,255,255,0.12)" />
           <path
-            d="M32 5.5 6.5 26.5V52a5.5 5.5 0 0 0 5.5 5.5h40a5.5 5.5 0 0 0 5.5-5.5V26.5Z"
-            fill="#fbf1ea"
+            d="M55.66 21.66 78.34 44.34Q84 50 78.34 55.66L55.66 78.34Q50 84 44.34 78.34L21.66 55.66Q16 50 21.66 44.34L44.34 21.66Q50 16 55.66 21.66Z"
+            fill="#faf2ed"
             stroke="#f4795b"
-            strokeWidth="5.5"
-            strokeLinejoin="round"
+            strokeWidth="8.5"
           />
-          <rect x="9.5" y="32.5" width="45" height="22" rx="3" fill="#f9d2a0" stroke="#f4795b" strokeWidth="4" strokeLinejoin="round" />
-          <path d="M32 11 55 28.5 32 52 9 28.5Z" fill="#fbf1ea" stroke="#f4795b" strokeWidth="4.5" strokeLinejoin="round" />
+          <path d="M8 51 50 9l42 42" stroke="#f4795b" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
     ),
