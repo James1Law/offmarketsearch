@@ -17,17 +17,16 @@ export default function AppleIcon() {
         }}
       >
         <svg width="132" height="132" viewBox="0 0 64 64" fill="none">
-          <path d="M45 9h7v11h-7z" fill="#f4795b" />
+          <rect x="44.5" y="7" width="9" height="14" rx="2" fill="#f4795b" />
           <path
-            d="M32 6.5 6.5 26.5V52a5.5 5.5 0 0 0 5.5 5.5h40a5.5 5.5 0 0 0 5.5-5.5V26.5Z"
-            fill="#fdf2ec"
+            d="M32 5.5 6.5 26.5V52a5.5 5.5 0 0 0 5.5 5.5h40a5.5 5.5 0 0 0 5.5-5.5V26.5Z"
+            fill="#fbf1ea"
             stroke="#f4795b"
-            strokeWidth="5"
+            strokeWidth="5.5"
             strokeLinejoin="round"
           />
-          <path d="M14 33h36v19H14Z" fill="#fbd9ae" stroke="#f4795b" strokeWidth="4" strokeLinejoin="round" />
-          <path d="M32 13 50 33 32 47 14 33Z" fill="#fdf2ec" stroke="#f4795b" strokeWidth="4" strokeLinejoin="round" />
-          <path d="M14 52 30 41.5M50 52 34 41.5" stroke="#f4795b" strokeWidth="4" strokeLinecap="round" />
+          <rect x="9.5" y="33.5" width="45" height="21" rx="3" fill="#f9d2a0" stroke="#f4795b" strokeWidth="4" strokeLinejoin="round" />
+          <path d="M32 16 53 34 32 52 11 34Z" fill="#fbf1ea" stroke="#f4795b" strokeWidth="4.5" strokeLinejoin="round" />
         </svg>
       </div>
     ),
