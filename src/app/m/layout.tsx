@@ -7,7 +7,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#ffffff",
+  themeColor: "#fbf3e7",
 }
 
 const containerStyle: CSSProperties = {
@@ -17,7 +17,7 @@ const containerStyle: CSSProperties = {
 
 export default function MobileLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col bg-white text-slate-900" style={containerStyle}>
+    <div className="flex flex-col bg-cream text-navy" style={containerStyle}>
       <MobileStepNav />
       <div className="flex-1 flex flex-col">{children}</div>
     </div>

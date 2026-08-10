@@ -22,7 +22,7 @@ export function MobileAddressList({
     return (
       <div className="flex flex-col gap-2 p-4">
         {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="h-12 bg-slate-100 rounded animate-pulse" />
+          <div key={i} className="h-12 bg-sand rounded animate-pulse" />
         ))}
       </div>
     )
@@ -34,7 +34,7 @@ export function MobileAddressList({
 
   if (addresses.length === 0) {
     return (
-      <div className="p-6 text-sm text-slate-500 text-center">
+      <div className="p-6 text-sm text-navy-soft text-center">
         Draw a rectangle on the map to find addresses.
       </div>
     )
@@ -49,14 +49,14 @@ export function MobileAddressList({
           Maximum {LIMITS.MAX_LETTERS_PER_CAMPAIGN} letters per campaign.
         </p>
       )}
-      <ul className="divide-y divide-slate-100">
+      <ul className="divide-y divide-sand">
         {addresses.map((addr) => {
           const checked = selectedIds.has(addr.id)
           const disabled = !checked && atCap
           return (
             <li key={addr.id}>
               <label
-                className={`flex items-center gap-3 px-4 py-3 active:bg-slate-50 transition-colors ${
+                className={`flex items-center gap-3 px-4 py-3 active:bg-cream transition-colors ${
                   disabled ? "opacity-40" : ""
                 }`}
               >
@@ -65,9 +65,9 @@ export function MobileAddressList({
                   checked={checked}
                   disabled={disabled}
                   onChange={() => onToggle(addr)}
-                  className="w-5 h-5 accent-indigo-600 shrink-0"
+                  className="w-5 h-5 accent-coral shrink-0"
                 />
-                <span className="text-sm text-slate-700 leading-snug">{addr.displayAddress}</span>
+                <span className="text-sm text-navy leading-snug">{addr.displayAddress}</span>
               </label>
             </li>
           )

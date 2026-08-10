@@ -34,10 +34,10 @@ export function MobileLetterPageClient() {
   if (campaignState.selectedAddresses.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center flex-1 gap-4 text-center px-6 py-12">
-        <p className="text-sm text-slate-600">You haven&apos;t selected any addresses yet.</p>
+        <p className="text-sm text-navy-soft">You haven&apos;t selected any addresses yet.</p>
         <button
           onClick={() => router.push("/m/map")}
-          className="text-indigo-600 font-medium text-sm hover:underline"
+          className="text-coral font-medium text-sm hover:underline"
         >
           ← Go back to the map
         </button>
@@ -47,19 +47,19 @@ export function MobileLetterPageClient() {
 
   return (
     <div className="flex flex-col flex-1">
-      <div className="px-4 py-4 border-b border-slate-100">
-        <h1 className="text-base font-semibold text-slate-900">Personalise your letter</h1>
-        <p className="text-xs text-slate-500 mt-0.5">
+      <div className="px-4 py-4 border-b border-sand">
+        <h1 className="text-base font-semibold text-navy">Personalise your letter</h1>
+        <p className="text-xs text-navy-soft mt-0.5">
           One letter sent to all {campaignState.selectedAddresses.length} addresses
         </p>
       </div>
 
-      <section className="px-4 py-5 border-b border-slate-100">
+      <section className="px-4 py-5 border-b border-sand">
         <LetterEditor initial={campaignState.letterContent} onChange={handleChange} />
       </section>
 
-      <section className="px-4 py-5 bg-slate-50">
-        <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
+      <section className="px-4 py-5 bg-cream">
+        <h2 className="text-xs font-semibold text-navy-soft uppercase tracking-wider mb-3">
           Preview
         </h2>
         <LetterPreview
@@ -73,7 +73,7 @@ export function MobileLetterPageClient() {
           }
           recipientAddress={exampleAddress}
         />
-        <p className="text-[11px] text-slate-400 text-center mt-3">
+        <p className="text-[11px] text-navy-soft/70 text-center mt-3">
           This is a preview of the letter that will be printed and posted to each homeowner.
         </p>
       </section>
@@ -82,7 +82,7 @@ export function MobileLetterPageClient() {
         <button
           onClick={handleNext}
           disabled={!isComplete}
-          className="w-full py-3 rounded-xl font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-indigo-600 active:bg-indigo-700 text-white"
+          className="w-full py-3 rounded-xl font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-coral active:bg-coral-dark text-white"
         >
           {isComplete ? "Next: Review basket →" : "Fill in your name and address"}
         </button>

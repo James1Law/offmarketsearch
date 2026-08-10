@@ -1,6 +1,6 @@
-# LetterDrop — Off-Market Property Search
+# Offline.homes — find homes before they're for sale
 
-Write personal letters to homeowners before their property hits the market.
+Write personal letters to homeowners before their property hits the market. Live at [offline.homes](https://offline.homes).
 
 **Live demo flow:** Draw an area on the map → select houses → compose a letter → review & pay → letters are printed and posted for you.
 
@@ -8,7 +8,7 @@ Write personal letters to homeowners before their property hits the market.
 
 ## What it does
 
-UK home movers use LetterDrop to reach homeowners directly. The user draws a rectangle on a map, picks the houses they want to contact, writes a personalised letter using a template, and pays per letter. LetterDrop handles printing and posting via Stannp's direct mail API.
+UK home movers use Offline.homes to reach homeowners directly. The user draws a rectangle on a map, picks the houses they want to contact, writes a personalised letter using a template, and pays per letter. Offline.homes handles printing and posting via Stannp's direct mail API.
 
 Letters are addressed to "The Homeowner" — no Land Registry lookups, no named personal data. This keeps the service legally straightforward under UK GDPR.
 

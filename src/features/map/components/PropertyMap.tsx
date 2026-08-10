@@ -81,13 +81,13 @@ export function PropertyMap({
         id: "selection-rect-fill",
         type: "fill",
         source: "selection-rect",
-        paint: { "fill-color": "#6366f1", "fill-opacity": 0.12 },
+        paint: { "fill-color": "#f4795b", "fill-opacity": 0.12 },
       })
       map.addLayer({
         id: "selection-rect-line",
         type: "line",
         source: "selection-rect",
-        paint: { "line-color": "#6366f1", "line-width": 2, "line-dasharray": [4, 2] },
+        paint: { "line-color": "#f4795b", "line-width": 2, "line-dasharray": [4, 2] },
       })
       drawLayerAddedRef.current = true
     })
@@ -137,7 +137,7 @@ export function PropertyMap({
     markersRef.current = addresses.map((addr) => {
       const el = document.createElement("div")
       el.className = `w-3 h-3 rounded-full border-2 border-white shadow-sm transition-colors ${
-        selectedIds.has(addr.id) ? "bg-indigo-600" : "bg-slate-400"
+        selectedIds.has(addr.id) ? "bg-coral" : "bg-navy-soft"
       }`
       return new maplibregl.Marker({ element: el })
         .setLngLat([addr.lng, addr.lat])

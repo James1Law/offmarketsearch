@@ -12,7 +12,7 @@ import type { SelectedAddress } from "@/types"
 
 const PropertyMap = dynamic(
   () => import("./PropertyMap").then((m) => m.PropertyMap),
-  { ssr: false, loading: () => <div className="w-full h-full bg-slate-100 animate-pulse" /> },
+  { ssr: false, loading: () => <div className="w-full h-full bg-sand animate-pulse" /> },
 )
 
 type DrawMode = "idle" | "first-click" | "second-click"
@@ -76,7 +76,7 @@ export function MobileMapPageClient() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Top control bar */}
-      <div className="px-3 py-2 bg-white border-b border-slate-200 shrink-0 flex items-center gap-2">
+      <div className="px-3 py-2 bg-white border-b border-sand shrink-0 flex items-center gap-2">
         <div className="relative flex-1">
           <input
             type="text"
@@ -85,19 +85,19 @@ export function MobileMapPageClient() {
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setShowSearchResults(true)}
             onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-            className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full text-sm border border-sand rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral"
           />
           {searchLoading && (
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-soft/70 text-xs">
               ...
             </span>
           )}
           {showSearchResults && searchResults.length > 0 && (
-            <ul className="absolute z-50 top-full mt-1 w-full bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto">
+            <ul className="absolute z-50 top-full mt-1 w-full bg-white border border-sand rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto">
               {searchResults.map((r) => (
                 <li key={r.place_id}>
                   <button
-                    className="w-full text-left text-sm px-3 py-2 active:bg-indigo-50 truncate"
+                    className="w-full text-left text-sm px-3 py-2 active:bg-cream truncate"
                     onClick={() => handleSearchSelect(r)}
                   >
                     {r.display_name}
@@ -110,7 +110,7 @@ export function MobileMapPageClient() {
         {drawMode === "idle" ? (
           <button
             onClick={() => setDrawMode("first-click")}
-            className="shrink-0 text-sm font-semibold px-3 py-2 rounded-lg bg-indigo-600 active:bg-indigo-700 text-white"
+            className="shrink-0 text-sm font-semibold px-3 py-2 rounded-lg bg-coral active:bg-coral-dark text-white"
             aria-label="Draw area"
           >
             Draw
@@ -118,7 +118,7 @@ export function MobileMapPageClient() {
         ) : (
           <button
             onClick={() => setDrawMode("idle")}
-            className="shrink-0 text-sm font-medium px-3 py-2 rounded-lg border border-slate-300 text-slate-600"
+            className="shrink-0 text-sm font-medium px-3 py-2 rounded-lg border border-sand text-navy-soft"
           >
             Cancel
           </button>
@@ -138,7 +138,7 @@ export function MobileMapPageClient() {
         </div>
 
         {drawPrompt && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-indigo-600 text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md pointer-events-none">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-coral text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md pointer-events-none">
             {drawPrompt}
           </div>
         )}
@@ -146,9 +146,9 @@ export function MobileMapPageClient() {
         <BottomSheet
           initialSnap={0}
           header={
-            <div className="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
+            <div className="px-4 py-2 border-b border-sand flex items-center justify-between">
               <div>
-                <div className="text-sm font-semibold text-slate-900">
+                <div className="text-sm font-semibold text-navy">
                   {addresses.length > 0
                     ? `${addresses.length} addresses found`
                     : selectedCount > 0
@@ -156,7 +156,7 @@ export function MobileMapPageClient() {
                       : "Selected addresses"}
                 </div>
                 {selectedCount > 0 && (
-                  <div className="text-xs text-indigo-600 font-medium">
+                  <div className="text-xs text-coral font-medium">
                     {selectedCount} selected
                   </div>
                 )}
@@ -164,7 +164,7 @@ export function MobileMapPageClient() {
               {addresses.length > 0 && (
                 <button
                   onClick={selectAllOnScreen}
-                  className="text-xs text-indigo-600 font-semibold px-2 py-1"
+                  className="text-xs text-coral font-semibold px-2 py-1"
                 >
                   Select all
                 </button>
@@ -179,7 +179,7 @@ export function MobileMapPageClient() {
               <button
                 onClick={() => router.push("/m/letter")}
                 disabled={selectedCount === 0}
-                className="w-full py-3 rounded-xl font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-indigo-600 active:bg-indigo-700 text-white"
+                className="w-full py-3 rounded-xl font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-coral active:bg-coral-dark text-white"
               >
                 {selectedCount === 0
                   ? "Select at least one address"

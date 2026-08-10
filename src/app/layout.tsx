@@ -1,16 +1,27 @@
 import type { Metadata } from "next"
-import { Geist } from "next/font/google"
+import { Poppins } from "next/font/google"
 import "./globals.css"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  variable: "--font-poppins",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 })
 
 export const metadata: Metadata = {
-  title: "LetterDrop — Write to homeowners near you",
+  metadataBase: new URL("https://offline.homes"),
+  title: "Offline.homes — Write to homeowners near you",
   description:
     "Find your dream home before it hits the market. Select houses on a map, write a personal letter, and we'll post it for you.",
+  openGraph: {
+    title: "Offline.homes — Write to homeowners near you",
+    description:
+      "Find your dream home before it hits the market. Select houses on a map, write a personal letter, and we'll post it for you.",
+    url: "https://offline.homes",
+    siteName: "Offline.homes",
+    locale: "en_GB",
+    type: "website",
+  },
 }
 
 export default function RootLayout({
@@ -19,8 +30,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-white text-slate-900">{children}</body>
+    <html lang="en" className={`${poppins.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-cream text-navy">{children}</body>
     </html>
   )
 }

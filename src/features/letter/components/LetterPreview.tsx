@@ -12,13 +12,13 @@ export function LetterPreview({ content, recipientAddress }: LetterPreviewProps)
   const text = renderTemplate(content)
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+    <div className="bg-white border border-sand rounded-xl shadow-sm overflow-hidden">
       {/* Letter-paper header */}
-      <div className="bg-slate-50 border-b border-slate-200 px-6 py-3 flex items-center justify-between">
-        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+      <div className="bg-cream border-b border-sand px-6 py-3 flex items-center justify-between">
+        <span className="text-xs font-semibold text-navy-soft uppercase tracking-wider">
           Letter preview
         </span>
-        <span className="text-xs text-slate-400">A5 · Printed & posted by LetterDrop</span>
+        <span className="text-xs text-navy-soft/70">A5 · Printed & posted by Offline.homes</span>
       </div>
 
       {/* Letter body */}
@@ -28,15 +28,15 @@ export function LetterPreview({ content, recipientAddress }: LetterPreviewProps)
       >
         {content.senderName || content.senderAddress || content.personalMessage
           ? text
-          : <span className="text-slate-400 not-italic" style={{ fontFamily: "inherit" }}>
+          : <span className="text-navy-soft/70 not-italic" style={{ fontFamily: "inherit" }}>
               Fill in your details on the left to preview your letter.
             </span>
         }
       </div>
 
       {/* Footer */}
-      <div className="bg-slate-50 border-t border-slate-200 px-6 py-2 text-xs text-slate-400">
-        Addressed to: <span className="font-medium text-slate-600">{recipientAddress || "The Homeowner"}</span>
+      <div className="bg-cream border-t border-sand px-6 py-2 text-xs text-navy-soft/70">
+        Addressed to: <span className="font-medium text-navy-soft">{recipientAddress || "The Homeowner"}</span>
       </div>
     </div>
   )

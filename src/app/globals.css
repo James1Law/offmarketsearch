@@ -1,26 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fbf3e7;
+  --foreground: #101a3c;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-poppins);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  /* Offline.homes brand palette — see docs/REBRAND_PLAN.md */
+  --color-cream: #fbf3e7;
+  --color-coral: #f4795b;
+  --color-coral-dark: #e0603f;
+  --color-coral-soft: #fde4d5;
+  --color-navy: #101a3c;
+  --color-navy-soft: #4a5370;
+  --color-sand: #eadfce;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
 }

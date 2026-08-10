@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { Logo } from "@/components/logo"
 
 const STEPS = [
   { href: "/m/map", label: "Pick" },
@@ -15,14 +16,14 @@ export function MobileStepNav() {
   const currentLabel = currentIndex >= 0 ? STEPS[currentIndex]?.label : null
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200">
+    <header className="sticky top-0 z-30 bg-cream/95 backdrop-blur border-b border-sand">
       <div className="px-4 h-12 flex items-center justify-between">
-        <Link href="/m" className="font-semibold text-slate-900 text-sm tracking-tight">
-          LetterDrop
+        <Link href="/m">
+          <Logo markClassName="w-5 h-5" textClassName="text-sm" />
         </Link>
         {currentIndex >= 0 && (
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-navy-soft">
               Step {currentIndex + 1} of {STEPS.length} · {currentLabel}
             </span>
             <div className="flex items-center gap-1">
@@ -31,10 +32,10 @@ export function MobileStepNav() {
                   key={s.href}
                   className={`block w-1.5 h-1.5 rounded-full transition-colors ${
                     i < currentIndex
-                      ? "bg-indigo-300"
+                      ? "bg-coral-soft"
                       : i === currentIndex
-                        ? "bg-indigo-600"
-                        : "bg-slate-200"
+                        ? "bg-coral"
+                        : "bg-sand"
                   }`}
                   aria-hidden="true"
                 />

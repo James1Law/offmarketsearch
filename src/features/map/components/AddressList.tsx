@@ -16,7 +16,7 @@ export function AddressList({ addresses, selectedIds, onToggle, loading, error }
     return (
       <div className="flex flex-col gap-2 p-4">
         {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
+          <div key={i} className="h-10 bg-sand rounded animate-pulse" />
         ))}
       </div>
     )
@@ -30,7 +30,7 @@ export function AddressList({ addresses, selectedIds, onToggle, loading, error }
 
   if (addresses.length === 0) {
     return (
-      <div className="p-4 text-sm text-slate-500 text-center">
+      <div className="p-4 text-sm text-navy-soft text-center">
         No addresses yet. Draw a rectangle on the map.
       </div>
     )
@@ -50,13 +50,13 @@ export function AddressList({ addresses, selectedIds, onToggle, loading, error }
   return (
     <div className="flex flex-col">
       {/* Header row */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100">
-        <span className="text-xs text-slate-500 font-medium">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-sand">
+        <span className="text-xs text-navy-soft font-medium">
           {addresses.length} addresses found
         </span>
         <button
           onClick={toggleAll}
-          className="text-xs text-indigo-600 font-medium hover:underline"
+          className="text-xs text-coral font-medium hover:underline"
         >
           {allSelected ? "Deselect all" : "Select all"}
         </button>
@@ -75,7 +75,7 @@ export function AddressList({ addresses, selectedIds, onToggle, loading, error }
           return (
             <li key={addr.id}>
               <label
-                className={`flex items-start gap-3 px-3 py-2.5 hover:bg-slate-50 cursor-pointer transition-colors ${
+                className={`flex items-start gap-3 px-3 py-2.5 hover:bg-cream cursor-pointer transition-colors ${
                   disabled ? "opacity-40 cursor-not-allowed" : ""
                 }`}
               >
@@ -84,9 +84,9 @@ export function AddressList({ addresses, selectedIds, onToggle, loading, error }
                   checked={checked}
                   disabled={disabled}
                   onChange={() => onToggle(addr)}
-                  className="mt-0.5 accent-indigo-600 shrink-0"
+                  className="mt-0.5 accent-coral shrink-0"
                 />
-                <span className="text-sm text-slate-700 leading-snug">{addr.displayAddress}</span>
+                <span className="text-sm text-navy leading-snug">{addr.displayAddress}</span>
               </label>
             </li>
           )
