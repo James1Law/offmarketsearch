@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
-import { BottomSheet } from "@/components/mobile/BottomSheet"
+import { BottomSheet, type SnapRequest } from "@/components/mobile/BottomSheet"
 import { MobileAddressList } from "./MobileAddressList"
 import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
@@ -16,6 +16,9 @@ const PropertyMap = dynamic(
 )
 
 type DrawMode = "idle" | "first-click" | "second-click"
+
+// Keep drawn results visible above the collapsed bottom sheet when fitting the map.
+const MOBILE_FIT_PADDING = { top: 40, bottom: 240, left: 40, right: 40 }
 
 export function MobileMapPageClient() {
   const router = useRouter()
@@ -30,6 +33,7 @@ export function MobileMapPageClient() {
   const [drawMode, setDrawMode] = useState<DrawMode>("idle")
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchResults, setShowSearchResults] = useState(false)
+  const [snapRequest, setSnapRequest] = useState<SnapRequest | undefined>(undefined)
 
   const selectedIds = useMemo(
     () => new Set(campaignState.selectedAddresses.map((a) => a.id)),
@@ -40,9 +44,17 @@ export function MobileMapPageClient() {
     campaignStore.toggleAddress(address)
   }
 
-  function handleAreaDrawn(bbox: BBox) {
+  function startDrawing() {
+    // Collapse the sheet so the map has maximum room while drawing.
+    setSnapRequest({ index: 0, token: Date.now() })
+    setDrawMode("first-click")
+  }
+
+  async function handleAreaDrawn(bbox: BBox) {
     clear()
-    fetchAddresses(bbox)
+    await fetchAddresses(bbox)
+    // Surface the results (or the error/empty message): expand the sheet to mid height.
+    setSnapRequest({ index: 1, token: Date.now() })
   }
 
   function handleSearchChange(value: string) {
@@ -59,9 +71,13 @@ export function MobileMapPageClient() {
     window.dispatchEvent(event)
   }
 
-  function selectAllOnScreen() {
+  const allOnScreenSelected =
+    addresses.length > 0 && addresses.every((addr) => selectedIds.has(addr.id))
+
+  function toggleAllOnScreen() {
     for (const addr of addresses) {
-      if (!selectedIds.has(addr.id)) handleToggle(addr)
+      const isSelected = selectedIds.has(addr.id)
+      if (allOnScreenSelected ? isSelected : !isSelected) handleToggle(addr)
     }
   }
 
@@ -85,7 +101,7 @@ export function MobileMapPageClient() {
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => setShowSearchResults(true)}
             onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-            className="w-full text-sm border border-sand rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral"
+            className="w-full text-base border border-sand rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral"
           />
           {searchLoading && (
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-navy-soft/70 text-xs">
@@ -97,7 +113,7 @@ export function MobileMapPageClient() {
               {searchResults.map((r) => (
                 <li key={r.place_id}>
                   <button
-                    className="w-full text-left text-sm px-3 py-2 active:bg-cream truncate"
+                    className="w-full text-left text-sm px-3 py-2.5 active:bg-cream truncate"
                     onClick={() => handleSearchSelect(r)}
                   >
                     {r.display_name}
@@ -109,16 +125,16 @@ export function MobileMapPageClient() {
         </div>
         {drawMode === "idle" ? (
           <button
-            onClick={() => setDrawMode("first-click")}
-            className="shrink-0 text-sm font-semibold px-3 py-2 rounded-lg bg-coral active:bg-coral-dark text-white"
+            onClick={startDrawing}
+            className="shrink-0 text-sm font-semibold px-4 py-2.5 rounded-lg bg-coral active:bg-coral-dark text-white"
             aria-label="Draw area"
           >
-            Draw
+            Draw area
           </button>
         ) : (
           <button
             onClick={() => setDrawMode("idle")}
-            className="shrink-0 text-sm font-medium px-3 py-2 rounded-lg border border-sand text-navy-soft"
+            className="shrink-0 text-sm font-medium px-4 py-2.5 rounded-lg border border-sand text-navy-soft"
           >
             Cancel
           </button>
@@ -134,39 +150,45 @@ export function MobileMapPageClient() {
             drawMode={drawMode}
             onDrawModeChange={setDrawMode}
             onAreaDrawn={handleAreaDrawn}
+            onMarkerTap={handleToggle}
+            showNavControl={false}
+            fitPadding={MOBILE_FIT_PADDING}
           />
         </div>
 
         {drawPrompt && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-coral text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md pointer-events-none">
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-max max-w-[85%] bg-coral text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md pointer-events-none">
             {drawPrompt}
           </div>
         )}
 
         <BottomSheet
           initialSnap={0}
+          snapRequest={snapRequest}
           header={
             <div className="px-4 py-2 border-b border-sand flex items-center justify-between">
               <div>
                 <div className="text-sm font-semibold text-navy">
-                  {addresses.length > 0
-                    ? `${addresses.length} addresses found`
-                    : selectedCount > 0
-                      ? `${selectedCount} selected`
-                      : "Selected addresses"}
+                  {loading
+                    ? "Finding addresses…"
+                    : addresses.length > 0
+                      ? `${addresses.length} addresses found`
+                      : selectedCount > 0
+                        ? `${selectedCount} selected`
+                        : "Selected addresses"}
                 </div>
-                {selectedCount > 0 && (
+                {!loading && addresses.length > 0 && selectedCount > 0 && (
                   <div className="text-xs text-coral font-medium">
                     {selectedCount} selected
                   </div>
                 )}
               </div>
-              {addresses.length > 0 && (
+              {!loading && addresses.length > 0 && (
                 <button
-                  onClick={selectAllOnScreen}
-                  className="text-xs text-coral font-semibold px-2 py-1"
+                  onClick={toggleAllOnScreen}
+                  className="text-sm text-coral font-semibold px-2 py-2"
                 >
-                  Select all
+                  {allOnScreenSelected ? "Clear all" : "Select all"}
                 </button>
               )}
             </div>

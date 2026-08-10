@@ -16,7 +16,10 @@ export function MobileBasketSummary() {
     return (
       <div className="flex flex-col items-center justify-center flex-1 gap-4 text-center px-6 py-12">
         <p className="text-sm text-navy-soft">Your basket is empty.</p>
-        <Link href="/m/map" className="text-coral font-medium text-sm hover:underline">
+        <Link
+          href="/m/map"
+          className="text-coral font-semibold text-sm px-5 py-3 rounded-xl bg-coral-soft active:bg-coral-soft/70"
+        >
           ← Go back to find addresses
         </Link>
       </div>
@@ -57,7 +60,7 @@ export function MobileBasketSummary() {
                 </span>
                 <button
                   onClick={() => handleRemoveAddress(addr.id)}
-                  className="text-xs text-navy-soft/70 active:text-red-500 shrink-0 px-2 py-1"
+                  className="text-xs font-medium text-navy-soft active:text-red-500 shrink-0 px-3 py-2 -my-1 rounded-lg active:bg-cream"
                   aria-label={`Remove ${addr.displayAddress}`}
                 >
                   Remove
@@ -67,7 +70,7 @@ export function MobileBasketSummary() {
           </ul>
           <Link
             href="/m/map"
-            className="text-xs text-coral hover:underline mt-2 inline-block"
+            className="text-sm text-coral font-medium mt-1 inline-block py-2"
           >
             ← Edit addresses
           </Link>
@@ -84,7 +87,7 @@ export function MobileBasketSummary() {
             </div>
             <Link
               href="/m/letter"
-              className="text-xs text-coral hover:underline mt-2 inline-block"
+              className="text-sm text-coral font-medium mt-1 inline-block py-2"
             >
               ← Edit letter
             </Link>

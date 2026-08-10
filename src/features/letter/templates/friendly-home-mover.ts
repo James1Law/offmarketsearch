@@ -11,10 +11,17 @@ export const FIELD_LABELS: Record<keyof Omit<LetterContent, "templateId">, strin
 }
 
 export const FIELD_HINTS: Record<keyof Omit<LetterContent, "templateId">, string> = {
-  senderName: "E.g. James & Sarah Law",
+  senderName: "Appears in your letter's sign-off",
   senderAddress: "So the homeowner knows where you currently live",
   personalMessage:
     "Tell them what you love about the area or why their home caught your eye. Warm, personal letters get better responses.",
+}
+
+export const FIELD_PLACEHOLDERS: Record<keyof Omit<LetterContent, "templateId">, string> = {
+  senderName: "James & Sarah Law",
+  senderAddress: "14 Maple Avenue, London NW3 2AB",
+  personalMessage:
+    "We've admired your street for years and would love to raise our family here…",
 }
 
 export function renderTemplate(content: LetterContent): string {
