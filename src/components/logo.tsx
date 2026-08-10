@@ -1,37 +1,19 @@
-const CORAL = "#f4795b"
-const FLAP_FILL = "#fdf2ec"
-const ENVELOPE_FILL = "#fbd9ae"
+import Image from "next/image"
 
-/** House-with-open-envelope brand mark. Scales via the width/height you set on it. */
+/**
+ * House-with-open-envelope brand mark — the original Canva artwork
+ * (public/brand/mark.png, 668px, transparent background).
+ */
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 64 64" fill="none" aria-hidden="true" className={className}>
-      {/* chimney */}
-      <path
-        d="M45 9h7v11h-7z"
-        fill={CORAL}
-      />
-      {/* house shell */}
-      <path
-        d="M32 6.5 6.5 26.5V52a5.5 5.5 0 0 0 5.5 5.5h40a5.5 5.5 0 0 0 5.5-5.5V26.5Z"
-        fill={FLAP_FILL}
-        stroke={CORAL}
-        strokeWidth="5"
-        strokeLinejoin="round"
-      />
-      {/* envelope body */}
-      <path d="M14 33h36v19H14Z" fill={ENVELOPE_FILL} stroke={CORAL} strokeWidth="4" strokeLinejoin="round" />
-      {/* open flap — raised diamond */}
-      <path
-        d="M32 13 50 33 32 47 14 33Z"
-        fill={FLAP_FILL}
-        stroke={CORAL}
-        strokeWidth="4"
-        strokeLinejoin="round"
-      />
-      {/* envelope fold lines */}
-      <path d="M14 52 30 41.5M50 52 34 41.5" stroke={CORAL} strokeWidth="4" strokeLinecap="round" />
-    </svg>
+    <Image
+      src="/brand/mark.png"
+      alt=""
+      width={128}
+      height={128}
+      className={className}
+      priority
+    />
   )
 }
 
