@@ -5,7 +5,6 @@ import { MobileStepNav } from "@/components/mobile/MobileStepNav"
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   viewportFit: "cover",
   themeColor: "#fbf3e7",
 }

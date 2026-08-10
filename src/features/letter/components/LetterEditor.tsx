@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import type { LetterContent } from "@/types"
 import { LIMITS, TEMPLATE_IDS } from "@/lib/constants"
-import { FIELD_LABELS, FIELD_HINTS } from "../templates/friendly-home-mover"
+import { FIELD_LABELS, FIELD_HINTS, FIELD_PLACEHOLDERS } from "../templates/friendly-home-mover"
 
 interface LetterEditorProps {
   initial: LetterContent | null
@@ -56,8 +56,8 @@ export function LetterEditor({ initial, onChange }: LetterEditorProps) {
                 onChange={(e) => set(field, e.target.value)}
                 maxLength={maxLen}
                 rows={field === "personalMessage" ? 5 : 3}
-                className="text-sm border border-sand rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral resize-none"
-                placeholder={FIELD_HINTS[field]}
+                className="text-base sm:text-sm border border-sand rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral resize-none"
+                placeholder={FIELD_PLACEHOLDERS[field]}
               />
             ) : (
               <input
@@ -65,8 +65,8 @@ export function LetterEditor({ initial, onChange }: LetterEditorProps) {
                 value={value}
                 onChange={(e) => set(field, e.target.value)}
                 maxLength={maxLen}
-                className="text-sm border border-sand rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral"
-                placeholder={FIELD_HINTS[field]}
+                className="text-base sm:text-sm border border-sand rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral"
+                placeholder={FIELD_PLACEHOLDERS[field]}
               />
             )}
             <span className="text-xs text-navy-soft/70 text-right">

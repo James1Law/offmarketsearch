@@ -37,7 +37,7 @@ export function MobileLetterPageClient() {
         <p className="text-sm text-navy-soft">You haven&apos;t selected any addresses yet.</p>
         <button
           onClick={() => router.push("/m/map")}
-          className="text-coral font-medium text-sm hover:underline"
+          className="text-coral font-semibold text-sm px-5 py-3 rounded-xl bg-coral-soft active:bg-coral-soft/70"
         >
           ← Go back to the map
         </button>

@@ -8,13 +8,28 @@ import { MAP_DEFAULTS } from "@/lib/constants"
 import type { SelectedAddress } from "@/types"
 import type { BBox } from "../hooks/useOverpassAddresses"
 
+interface FitPadding {
+  top: number
+  bottom: number
+  left: number
+  right: number
+}
+
 interface PropertyMapProps {
   addresses: SelectedAddress[]
   selectedIds: Set<string>
   drawMode: "idle" | "first-click" | "second-click"
   onDrawModeChange: (mode: "idle" | "first-click" | "second-click") => void
   onAreaDrawn: (bbox: BBox) => void
+  /** When set, tapping a marker toggles it instead of opening a popup, and markers render larger for touch. */
+  onMarkerTap?: (address: SelectedAddress) => void
+  /** Hide the +/− navigation control (mobile uses pinch gestures). Default true. */
+  showNavControl?: boolean
+  /** Extra padding for the fit-to-area zoom, e.g. to keep results above a bottom sheet. */
+  fitPadding?: FitPadding
 }
+
+const DEFAULT_FIT_PADDING: FitPadding = { top: 40, bottom: 40, left: 40, right: 40 }
 
 function buildMapStyle(): string | object {
   if (env.NEXT_PUBLIC_MAPTILER_API_KEY) {
@@ -45,6 +60,9 @@ export function PropertyMap({
   drawMode,
   onDrawModeChange,
   onAreaDrawn,
+  onMarkerTap,
+  showNavControl = true,
+  fitPadding = DEFAULT_FIT_PADDING,
 }: PropertyMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -56,10 +74,14 @@ export function PropertyMap({
   const drawModeRef = useRef(drawMode)
   const onAreaDrawnRef = useRef(onAreaDrawn)
   const onDrawModeChangeRef = useRef(onDrawModeChange)
+  const onMarkerTapRef = useRef(onMarkerTap)
+  const fitPaddingRef = useRef(fitPadding)
 
   useEffect(() => { drawModeRef.current = drawMode })
   useEffect(() => { onAreaDrawnRef.current = onAreaDrawn })
   useEffect(() => { onDrawModeChangeRef.current = onDrawModeChange })
+  useEffect(() => { onMarkerTapRef.current = onMarkerTap })
+  useEffect(() => { fitPaddingRef.current = fitPadding })
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -69,7 +91,9 @@ export function PropertyMap({
       center: [MAP_DEFAULTS.CENTER_LNG, MAP_DEFAULTS.CENTER_LAT],
       zoom: MAP_DEFAULTS.ZOOM,
     })
-    map.addControl(new maplibregl.NavigationControl(), "top-right")
+    if (showNavControl) {
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right")
+    }
     mapRef.current = map
 
     map.on("load", () => {
@@ -107,7 +131,7 @@ export function PropertyMap({
           north: Math.max(lat1, lat2),
           east: Math.max(lng1, lng2),
         }
-        drawRect(map, bbox)
+        drawRect(map, bbox, fitPaddingRef.current)
         firstCornerRef.current = null
         onDrawModeChangeRef.current("idle")
         onAreaDrawnRef.current(bbox)
@@ -119,6 +143,7 @@ export function PropertyMap({
       mapRef.current = null
       drawLayerAddedRef.current = false
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Update cursor based on draw mode
@@ -133,23 +158,31 @@ export function PropertyMap({
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
+    const touchMarkers = Boolean(onMarkerTap)
     for (const m of markersRef.current) m.remove()
     markersRef.current = addresses.map((addr) => {
       const el = document.createElement("div")
-      el.className = `w-3 h-3 rounded-full border-2 border-white shadow-sm transition-colors ${
+      const size = touchMarkers ? "w-6 h-6 border-[3px]" : "w-3 h-3 border-2"
+      el.className = `${size} rounded-full border-white shadow-md transition-colors cursor-pointer ${
         selectedIds.has(addr.id) ? "bg-coral" : "bg-navy-soft"
       }`
-      return new maplibregl.Marker({ element: el })
-        .setLngLat([addr.lng, addr.lat])
-        .setPopup(new maplibregl.Popup({ offset: 12 }).setText(addr.displayAddress))
-        .addTo(map)
+      const marker = new maplibregl.Marker({ element: el }).setLngLat([addr.lng, addr.lat])
+      if (touchMarkers) {
+        el.addEventListener("click", () => {
+          if (drawModeRef.current !== "idle") return
+          onMarkerTapRef.current?.(addr)
+        })
+      } else {
+        marker.setPopup(new maplibregl.Popup({ offset: 12 }).setText(addr.displayAddress))
+      }
+      return marker.addTo(map)
     })
-  }, [addresses, selectedIds])
+  }, [addresses, selectedIds, onMarkerTap])
 
   return <div ref={containerRef} className="w-full h-full" />
 }
 
-function drawRect(map: maplibregl.Map, bbox: BBox) {
+function drawRect(map: maplibregl.Map, bbox: BBox, padding: FitPadding) {
   const src = map.getSource("selection-rect") as maplibregl.GeoJSONSource | undefined
   if (!src) return
   src.setData({
@@ -178,6 +211,6 @@ function drawRect(map: maplibregl.Map, bbox: BBox) {
       [bbox.west, bbox.south],
       [bbox.east, bbox.north],
     ],
-    { padding: 40, maxZoom: 17 },
+    { padding, maxZoom: 17 },
   )
 }

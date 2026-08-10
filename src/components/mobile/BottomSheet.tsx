@@ -7,11 +7,19 @@ const MIN_RATIO = 0.18
 const MAX_RATIO = 0.96
 const TAP_THRESHOLD_PX = 5
 
-type SnapIndex = 0 | 1 | 2
+export type SnapIndex = 0 | 1 | 2
+
+/** Pass a fresh token each time to programmatically move the sheet to a snap point. */
+export interface SnapRequest {
+  index: SnapIndex
+  token: number
+}
 
 interface BottomSheetProps {
   children: ReactNode
   initialSnap?: SnapIndex
+  /** Programmatic snap: applied whenever `token` changes. User can still drag afterwards. */
+  snapRequest?: SnapRequest | undefined
   /** Sticky header inside the sheet (above the scrollable area). */
   header?: ReactNode
   /** Sticky footer inside the sheet (below the scrollable area). Always visible. */
@@ -29,12 +37,19 @@ interface DragState {
  * Three snap points; drag the handle or tap to cycle through them.
  * Footer stays anchored to the bottom of the screen at all snaps.
  */
-export function BottomSheet({ children, initialSnap = 0, header, footer }: BottomSheetProps) {
+export function BottomSheet({ children, initialSnap = 0, snapRequest, header, footer }: BottomSheetProps) {
   const [snap, setSnap] = useState<SnapIndex>(initialSnap)
   const [dragOffsetRatio, setDragOffsetRatio] = useState(0)
   const [dragging, setDragging] = useState(false)
   const dragRef = useRef<DragState | null>(null)
   const sheetRef = useRef<HTMLDivElement>(null)
+
+  // Apply programmatic snap requests (adjust-state-during-render pattern).
+  const [appliedToken, setAppliedToken] = useState<number | null>(null)
+  if (snapRequest && snapRequest.token !== appliedToken) {
+    setAppliedToken(snapRequest.token)
+    setSnap(snapRequest.index)
+  }
 
   function handlePointerDown(e: PointerEvent<HTMLDivElement>) {
     const parent = sheetRef.current?.parentElement
