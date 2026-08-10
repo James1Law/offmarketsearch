@@ -17,19 +17,15 @@ export default function AppleIcon() {
         }}
       >
         <svg width="150" height="150" viewBox="0 0 100 100" fill="none">
-          <rect x="72" y="12" width="10" height="32" rx="3" fill="#f4795b" />
-          <path d="M14.5 44V82a9.5 9.5 0 0 0 9.5 9.5h52a9.5 9.5 0 0 0 9.5-9.5V44" fill="#faf2ed" stroke="#f4795b" strokeWidth="9.5" />
-          <rect x="15" y="48" width="70" height="43" rx="7" fill="#f9d2a0" />
-          <path d="M15 48 50 86 15 86Z" fill="rgba(255,255,255,0.22)" />
-          <path d="M85 48 50 86 85 86Z" fill="rgba(255,255,255,0.12)" />
-          <path
-            d="M55.66 21.66 78.34 44.34Q84 50 78.34 55.66L55.66 78.34Q50 84 44.34 78.34L21.66 55.66Q16 50 21.66 44.34L44.34 21.66Q50 16 55.66 21.66Z"
-            fill="#faf2ed"
-            stroke="#f4795b"
-            strokeWidth="8.5"
-          />
-          <path d="M8 51 50 9l42 42" stroke="#f4795b" strokeWidth="11" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+            <rect x="70" y="6" width="12" height="34" rx="3" fill="#f37a58" />
+            <path d="M10.5 42V79a10.5 10.5 0 0 0 10.5 10.5h58A10.5 10.5 0 0 0 89.5 79V42" fill="#faf2ed" stroke="#f37a58" strokeWidth="10" />
+            <rect x="11" y="46" width="78" height="44" rx="8" fill="#f9cf9a" />
+            <path d="M11 46 50 88 11 88Z" fill="rgba(255,255,255,0.26)" />
+            <path d="M89 46 50 88 89 88Z" fill="rgba(255,255,255,0.14)" />
+            <path d="M11 90 50 62 89 90Z" fill="rgba(255,255,255,0.18)" />
+            <path d="M59.32 24.07 77.68 41.93Q87 51 77.68 60.07L59.32 77.93Q50 87 40.68 77.93L22.32 60.07Q13 51 22.32 41.93L40.68 24.07Q50 15 59.32 24.07Z" fill="#faf2ed" stroke="#f37a58" strokeWidth="10" />
+            <path d="M7 47 50 8l43 39" stroke="#f37a58" strokeWidth="12.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
       </div>
     ),
     size

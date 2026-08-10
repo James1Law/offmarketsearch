@@ -1,9 +1,9 @@
 import { useId } from "react"
 
 /**
- * House-with-open-envelope brand mark, drawn to match the original artwork:
- * overhanging round-capped roof, rounded diamond flap fused into the roof,
- * strokeless gradient envelope with translucent fold overlays.
+ * House-with-open-envelope brand mark, matching the original artwork:
+ * heavy overhanging round-capped roof, wide rounded diamond flap fused into
+ * the roof/walls, layered translucent envelope flaps, warm coral gradient.
  */
 export function LogoMark({ className }: { className?: string }) {
   const id = useId()
@@ -11,41 +11,44 @@ export function LogoMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 100 100" fill="none" aria-hidden="true" className={className}>
       <defs>
-        <linearGradient id={`${id}-coral`} gradientUnits="userSpaceOnUse" x1="25" y1="5" x2="80" y2="100">
-          <stop offset="0" stopColor="#f68d6d" />
-          <stop offset="1" stopColor="#ee6644" />
+        <linearGradient id={`${id}-coral`} gradientUnits="userSpaceOnUse" x1="20" y1="4" x2="85" y2="100">
+          <stop offset="0" stopColor="#f79a76" />
+          <stop offset="0.5" stopColor="#f37a58" />
+          <stop offset="1" stopColor="#ec6240" />
         </linearGradient>
-        <linearGradient id={`${id}-env`} gradientUnits="userSpaceOnUse" x1="50" y1="48" x2="50" y2="91">
-          <stop offset="0" stopColor="#fcdfb2" />
-          <stop offset="1" stopColor="#f5bd80" />
+        <linearGradient id={`${id}-env`} gradientUnits="userSpaceOnUse" x1="50" y1="46" x2="50" y2="90">
+          <stop offset="0" stopColor="#fde3b8" />
+          <stop offset="0.55" stopColor="#f9cf9a" />
+          <stop offset="1" stopColor="#f6be82" />
         </linearGradient>
       </defs>
-      {/* chimney */}
-      <rect x="72" y="12" width="10" height="32" rx="3" fill={coral} />
+      {/* chimney — wide, tall, distinct */}
+      <rect x="70" y="6" width="12" height="34" rx="3" fill={coral} />
       {/* house body: walls + rounded base, open at the top (tucks under the roof) */}
       <path
-        d="M14.5 44V82a9.5 9.5 0 0 0 9.5 9.5h52a9.5 9.5 0 0 0 9.5-9.5V44"
+        d="M10.5 42V79a10.5 10.5 0 0 0 10.5 10.5h58A10.5 10.5 0 0 0 89.5 79V42"
         fill="#faf2ed"
         stroke={coral}
-        strokeWidth="9.5"
+        strokeWidth="10"
       />
       {/* envelope: strokeless, bounded by walls/base/flap */}
-      <rect x="15" y="48" width="70" height="43" rx="7" fill={`url(#${id}-env)`} />
-      {/* translucent fold overlays */}
-      <path d="M15 48 50 86 15 86Z" fill="#ffffff" opacity="0.22" />
-      <path d="M85 48 50 86 85 86Z" fill="#ffffff" opacity="0.12" />
-      {/* open flap: rounded diamond, top corner fused into the roof band */}
+      <rect x="11" y="46" width="78" height="44" rx="8" fill={`url(#${id}-env)`} />
+      {/* layered translucent flaps: left, right, then bottom V */}
+      <path d="M11 46 50 88 11 88Z" fill="#ffffff" opacity="0.26" />
+      <path d="M89 46 50 88 89 88Z" fill="#ffffff" opacity="0.14" />
+      <path d="M11 90 50 62 89 90Z" fill="#ffffff" opacity="0.18" />
+      {/* open flap: wide rounded diamond fused into roof band and walls */}
       <path
-        d="M55.66 21.66 78.34 44.34Q84 50 78.34 55.66L55.66 78.34Q50 84 44.34 78.34L21.66 55.66Q16 50 21.66 44.34L44.34 21.66Q50 16 55.66 21.66Z"
+        d="M59.32 24.07 77.68 41.93Q87 51 77.68 60.07L59.32 77.93Q50 87 40.68 77.93L22.32 60.07Q13 51 22.32 41.93L40.68 24.07Q50 15 59.32 24.07Z"
         fill="#faf2ed"
         stroke={coral}
-        strokeWidth="8.5"
+        strokeWidth="10"
       />
-      {/* overhanging roof with rounded end caps */}
+      {/* heavy overhanging roof with rounded end caps */}
       <path
-        d="M8 51 50 9l42 42"
+        d="M7 47 50 8l43 39"
         stroke={coral}
-        strokeWidth="11"
+        strokeWidth="12.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
