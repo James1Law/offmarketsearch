@@ -21,7 +21,7 @@ export default function OpengraphImage() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
           <svg width="120" height="120" viewBox="0 0 64 64" fill="none">
-            <rect x="44.5" y="7" width="9" height="14" rx="2" fill="#f4795b" />
+            <rect x="43.5" y="5" width="10.5" height="20" rx="2.5" fill="#f4795b" />
             <path
               d="M32 5.5 6.5 26.5V52a5.5 5.5 0 0 0 5.5 5.5h40a5.5 5.5 0 0 0 5.5-5.5V26.5Z"
               fill="#fbf1ea"
@@ -29,8 +29,8 @@ export default function OpengraphImage() {
               strokeWidth="5.5"
               strokeLinejoin="round"
             />
-            <rect x="9.5" y="33.5" width="45" height="21" rx="3" fill="#f9d2a0" stroke="#f4795b" strokeWidth="4" strokeLinejoin="round" />
-            <path d="M32 16 53 34 32 52 11 34Z" fill="#fbf1ea" stroke="#f4795b" strokeWidth="4.5" strokeLinejoin="round" />
+            <rect x="9.5" y="32.5" width="45" height="22" rx="3" fill="#f9d2a0" stroke="#f4795b" strokeWidth="4" strokeLinejoin="round" />
+            <path d="M32 13 53.5 30.5 32 52 10.5 30.5Z" fill="#fbf1ea" stroke="#f4795b" strokeWidth="4.5" strokeLinejoin="round" />
           </svg>
           <div style={{ display: "flex", fontSize: 96, fontWeight: 700, color: "#101a3c", letterSpacing: -3 }}>
             Offline<span style={{ color: "#f4795b" }}>.</span>homes
