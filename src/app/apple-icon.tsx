@@ -26,7 +26,7 @@ export default function AppleIcon() {
             strokeLinejoin="round"
           />
           <rect x="9.5" y="32.5" width="45" height="22" rx="3" fill="#f9d2a0" stroke="#f4795b" strokeWidth="4" strokeLinejoin="round" />
-          <path d="M32 13 53.5 30.5 32 52 10.5 30.5Z" fill="#fbf1ea" stroke="#f4795b" strokeWidth="4.5" strokeLinejoin="round" />
+          <path d="M32 11 55 28.5 32 52 9 28.5Z" fill="#fbf1ea" stroke="#f4795b" strokeWidth="4.5" strokeLinejoin="round" />
         </svg>
       </div>
     ),

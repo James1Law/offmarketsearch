@@ -40,7 +40,7 @@ export function LogoMark({ className }: { className?: string }) {
       />
       {/* open flap — full-width rounded diamond, tip dipping into the envelope */}
       <path
-        d="M32 13 53.5 30.5 32 52 10.5 30.5Z"
+        d="M32 11 55 28.5 32 52 9 28.5Z"
         fill={FLAP_FILL}
         stroke={CORAL}
         strokeWidth="4.5"
