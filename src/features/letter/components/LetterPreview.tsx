@@ -26,7 +26,11 @@ export function LetterPreview({ content, recipientAddress }: LetterPreviewProps)
         className="px-8 py-6 font-serif text-sm text-slate-800 leading-relaxed whitespace-pre-wrap min-h-[420px]"
         style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
       >
-        {content.senderName || content.senderAddress || content.personalMessage
+        {content.senderName ||
+        content.senderAddress ||
+        content.senderPhone ||
+        content.senderEmail ||
+        content.personalMessage
           ? text
           : <span className="text-navy-soft/70 not-italic" style={{ fontFamily: "inherit" }}>
               Fill in your details on the left to preview your letter.

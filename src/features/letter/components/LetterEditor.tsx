@@ -14,8 +14,38 @@ const EMPTY: LetterContent = {
   templateId: TEMPLATE_IDS.FRIENDLY_HOME_MOVER,
   senderName: "",
   senderAddress: "",
+  senderPhone: "",
+  senderEmail: "",
   personalMessage: "",
 }
+
+type FieldKey = keyof Omit<LetterContent, "templateId">
+
+interface FieldConfig {
+  field: FieldKey
+  maxLen: number
+  kind: "input" | "textarea"
+  inputType?: "text" | "tel" | "email"
+  rows?: number
+}
+
+const FIELDS: FieldConfig[] = [
+  { field: "senderName", maxLen: LIMITS.MAX_SENDER_NAME_CHARS, kind: "input" },
+  { field: "senderAddress", maxLen: LIMITS.MAX_SENDER_ADDRESS_CHARS, kind: "textarea", rows: 3 },
+  { field: "senderPhone", maxLen: LIMITS.MAX_SENDER_PHONE_CHARS, kind: "input", inputType: "tel" },
+  {
+    field: "senderEmail",
+    maxLen: LIMITS.MAX_SENDER_EMAIL_CHARS,
+    kind: "input",
+    inputType: "email",
+  },
+  {
+    field: "personalMessage",
+    maxLen: LIMITS.MAX_PERSONAL_MESSAGE_CHARS,
+    kind: "textarea",
+    rows: 5,
+  },
+]
 
 export function LetterEditor({ initial, onChange }: LetterEditorProps) {
   const [form, setForm] = useState<LetterContent>(initial ?? EMPTY)
@@ -24,44 +54,31 @@ export function LetterEditor({ initial, onChange }: LetterEditorProps) {
     onChange(form)
   }, [form, onChange])
 
-  function set(field: keyof Omit<LetterContent, "templateId">, value: string) {
+  function set(field: FieldKey, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  const fields: Array<keyof Omit<LetterContent, "templateId">> = [
-    "senderName",
-    "senderAddress",
-    "personalMessage",
-  ]
-
   return (
     <form className="flex flex-col gap-5" onSubmit={(e) => e.preventDefault()}>
-      {fields.map((field) => {
-        const maxLen =
-          field === "senderName"
-            ? LIMITS.MAX_SENDER_NAME_CHARS
-            : field === "senderAddress"
-              ? LIMITS.MAX_SENDER_ADDRESS_CHARS
-              : LIMITS.MAX_PERSONAL_MESSAGE_CHARS
-        const value = form[field]
-        const isTextarea = field === "senderAddress" || field === "personalMessage"
+      {FIELDS.map(({ field, maxLen, kind, inputType, rows }) => {
+        const value = form[field] ?? ""
 
         return (
           <div key={field} className="flex flex-col gap-1">
             <label className="text-sm font-medium text-navy">{FIELD_LABELS[field]}</label>
             <p className="text-xs text-navy-soft">{FIELD_HINTS[field]}</p>
-            {isTextarea ? (
+            {kind === "textarea" ? (
               <textarea
                 value={value}
                 onChange={(e) => set(field, e.target.value)}
                 maxLength={maxLen}
-                rows={field === "personalMessage" ? 5 : 3}
+                rows={rows}
                 className="text-base sm:text-sm border border-sand rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-coral resize-none"
                 placeholder={FIELD_PLACEHOLDERS[field]}
               />
             ) : (
               <input
-                type="text"
+                type={inputType ?? "text"}
                 value={value}
                 onChange={(e) => set(field, e.target.value)}
                 maxLength={maxLen}
