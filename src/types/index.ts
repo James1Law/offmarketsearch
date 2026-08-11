@@ -11,6 +11,22 @@ export const SelectedAddressSchema = z.object({
 
 export type SelectedAddress = z.infer<typeof SelectedAddressSchema>
 
+export const PROPERTY_TYPES = ["detached", "semi-detached", "terraced", "flat", "bungalow"] as const
+
+export const PropertyTypeSchema = z.enum(PROPERTY_TYPES)
+
+export type PropertyType = z.infer<typeof PropertyTypeSchema>
+
+export const PropertyAttributesSchema = z.object({
+  propertyType: PropertyTypeSchema,
+  bedrooms: z.number().int().min(1).max(6),
+  floorAreaSqm: z.number().int().positive(),
+  hasGarden: z.boolean(),
+  hasParking: z.boolean(),
+})
+
+export type PropertyAttributes = z.infer<typeof PropertyAttributesSchema>
+
 export const LetterContentSchema = z.object({
   templateId: z.string(),
   senderName: z.string().min(1).max(100),

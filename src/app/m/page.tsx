@@ -11,11 +11,16 @@ const HOW_STEPS = [
   },
   {
     number: "2",
+    title: "Refine your results",
+    description: "Narrow it down by property type, size, and attributes.",
+  },
+  {
+    number: "3",
     title: "Write your letter",
     description: "Use our friendly template — we handle the formatting.",
   },
   {
-    number: "3",
+    number: "4",
     title: "We post it for you",
     description: "Pay securely and we'll print and post a real letter to each home.",
   },

@@ -6,8 +6,9 @@ import { Logo } from "@/components/logo"
 
 const STEPS = [
   { href: "/map", label: "1. Find houses" },
-  { href: "/letter", label: "2. Write letter" },
-  { href: "/basket", label: "3. Review & pay" },
+  { href: "/refine", label: "2. Refine" },
+  { href: "/letter", label: "3. Write letter" },
+  { href: "/basket", label: "4. Review & pay" },
 ]
 
 export function StepNav() {

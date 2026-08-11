@@ -39,7 +39,7 @@ export default function HomePage() {
       <section className="py-20 px-4 bg-white">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-2xl font-bold text-center text-navy mb-12">How it works</h2>
-          <div className="grid sm:grid-cols-3 gap-8">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {HOW_STEPS.map((step) => (
               <div key={step.number} className="text-center">
                 <div className="w-12 h-12 rounded-full bg-coral-soft text-coral-dark text-xl font-bold flex items-center justify-center mx-auto mb-4">
@@ -94,12 +94,17 @@ const HOW_STEPS = [
   },
   {
     number: "2",
+    title: "Refine your results",
+    description: "Narrow it down by property type, size, and attributes like a garden or parking.",
+  },
+  {
+    number: "3",
     title: "Write your letter",
     description:
       "Use our friendly template to explain why you're writing. We handle the formatting.",
   },
   {
-    number: "3",
+    number: "4",
     title: "We post it for you",
     description:
       "Pay securely and we'll print and post a real letter to each house — from £2.50 each.",

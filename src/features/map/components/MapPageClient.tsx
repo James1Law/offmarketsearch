@@ -162,13 +162,13 @@ export function MapPageClient() {
           />
           <div className="p-3 border-t border-sand mt-auto">
             <button
-              onClick={() => router.push("/letter")}
+              onClick={() => router.push("/refine")}
               disabled={selectedCount === 0}
               className="w-full py-2.5 rounded-lg font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-coral hover:bg-coral-dark text-white"
             >
               {selectedCount === 0
                 ? "Select at least one address"
-                : `Next: Write your letter (${selectedCount}) →`}
+                : `Next: Refine your results (${selectedCount}) →`}
             </button>
           </div>
         </aside>

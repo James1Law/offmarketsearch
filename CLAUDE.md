@@ -179,6 +179,7 @@ supabase migration new <name>   # create a new migration
 
 - `/` — landing page
 - `/map` — MapLibre map, draw rectangle, Overpass/Nominatim address fetch, address list
+- `/refine` — filter selected addresses by property type, size, attributes (sample data pending a property-data API)
 - `/letter` — template editor + HTML letter preview
 - `/basket` — address list, pricing, mock checkout CTA
 - `/confirm` — order confirmation (mock)
