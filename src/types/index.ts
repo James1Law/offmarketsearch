@@ -31,6 +31,9 @@ export const LetterContentSchema = z.object({
   templateId: z.string(),
   senderName: z.string().min(1).max(100),
   senderAddress: z.string().min(1).max(300),
+  // Optional so campaigns saved before these fields existed still parse.
+  senderPhone: z.string().max(30).optional(),
+  senderEmail: z.string().max(100).optional(),
   personalMessage: z.string().max(600),
 })
 
