@@ -5,6 +5,7 @@ const MOBILE_UA_REGEX = /Mobile|iPhone|iPod|Android|BlackBerry|IEMobile|Opera Mi
 const DESKTOP_TO_MOBILE: Record<string, string> = {
   "/": "/m",
   "/map": "/m/map",
+  "/refine": "/m/refine",
   "/letter": "/m/letter",
   "/basket": "/m/basket",
   "/confirm": "/m/confirm",
@@ -29,5 +30,5 @@ export function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/map", "/letter", "/basket", "/confirm"],
+  matcher: ["/", "/map", "/refine", "/letter", "/basket", "/confirm"],
 }

@@ -199,13 +199,13 @@ export function MobileMapPageClient() {
               style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
             >
               <button
-                onClick={() => router.push("/m/letter")}
+                onClick={() => router.push("/m/refine")}
                 disabled={selectedCount === 0}
                 className="w-full py-3 rounded-xl font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-coral active:bg-coral-dark text-white"
               >
                 {selectedCount === 0
                   ? "Select at least one address"
-                  : `Next: Write your letter (${selectedCount}) →`}
+                  : `Next: Refine your results (${selectedCount}) →`}
               </button>
             </div>
           }

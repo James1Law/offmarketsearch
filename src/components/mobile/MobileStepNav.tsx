@@ -6,6 +6,7 @@ import { Logo } from "@/components/logo"
 
 const STEPS = [
   { href: "/m/map", label: "Pick" },
+  { href: "/m/refine", label: "Refine" },
   { href: "/m/letter", label: "Write" },
   { href: "/m/basket", label: "Pay" },
 ]
