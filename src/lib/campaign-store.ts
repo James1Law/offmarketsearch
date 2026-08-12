@@ -1,12 +1,13 @@
 "use client"
 
 import { useSyncExternalStore } from "react"
-import type { CampaignState, SelectedAddress, LetterContent } from "@/types"
+import type { CampaignState, SelectedAddress, LetterContent, RefineFilters } from "@/types"
 
 const STORAGE_KEY = "offline-homes-campaign"
 
 const defaultState: CampaignState = {
   selectedAddresses: [],
+  refineFilters: null,
   letterContent: null,
 }
 
@@ -15,7 +16,8 @@ function readFromStorage(): CampaignState {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return defaultState
-    return JSON.parse(raw) as CampaignState
+    // Spread over defaults so state saved before newer fields existed still loads.
+    return { ...defaultState, ...(JSON.parse(raw) as Partial<CampaignState>) }
   } catch {
     return defaultState
   }
@@ -66,6 +68,9 @@ export const campaignStore = {
       ? currentState.selectedAddresses.filter((a) => a.id !== address.id)
       : [...currentState.selectedAddresses, address]
     setState({ ...currentState, selectedAddresses: next })
+  },
+  setRefineFilters(filters: RefineFilters): void {
+    setState({ ...currentState, refineFilters: filters })
   },
   setLetterContent(content: LetterContent): void {
     setState({ ...currentState, letterContent: content })

@@ -1,15 +1,6 @@
-import type { PropertyAttributes, PropertyType } from "@/types"
+import type { PropertyAttributes, PropertyType, RefineFilters } from "@/types"
 
-export interface RefineFilters {
-  /** Empty array means "any property type". */
-  propertyTypes: PropertyType[]
-  /** 0 means "any". */
-  minBedrooms: number
-  /** 0 means "any". */
-  minFloorAreaSqm: number
-  mustHaveGarden: boolean
-  mustHaveParking: boolean
-}
+export type { RefineFilters }
 
 export const DEFAULT_FILTERS: RefineFilters = {
   propertyTypes: [],

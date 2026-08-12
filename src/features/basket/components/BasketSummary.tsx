@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
 import { formatPence, calcTotalPence } from "@/lib/constants"
 import { PricingTable } from "./PricingTable"
-import { renderTemplate } from "@/features/letter/templates/friendly-home-mover"
+import { renderLetterText } from "@/features/letter/templates/friendly-home-mover"
 
 export function BasketSummary() {
   const router = useRouter()
@@ -24,7 +24,12 @@ export function BasketSummary() {
   }
 
   const totalPence = calcTotalPence(selectedAddresses.length)
-  const letterSnippet = letterContent ? renderTemplate(letterContent).slice(0, 180) + "…" : null
+  const letterSnippet = letterContent
+    ? renderLetterText(letterContent, selectedAddresses[0] ?? null, state.refineFilters).slice(
+        0,
+        180,
+      ) + "…"
+    : null
 
   function handleProceed() {
     router.push("/confirm")

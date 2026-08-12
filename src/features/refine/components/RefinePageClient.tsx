@@ -11,7 +11,9 @@ import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
 export function RefinePageClient() {
   const router = useRouter()
   const campaignState = useCampaignStore()
-  const [filters, setFilters] = useState<RefineFilters>(DEFAULT_FILTERS)
+  const [filters, setFilters] = useState<RefineFilters>(
+    campaignState.refineFilters ?? DEFAULT_FILTERS,
+  )
 
   const properties = useMemo(
     () =>
@@ -28,6 +30,7 @@ export function RefinePageClient() {
   function handleNext() {
     if (matchedCount === 0) return
     campaignStore.setAddresses(matched.map((m) => m.address))
+    campaignStore.setRefineFilters(filters)
     router.push("/letter")
   }
 
