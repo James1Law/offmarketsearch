@@ -17,8 +17,7 @@ export function MobileLetterPageClient() {
     setDraft(content)
   }, [])
 
-  const exampleAddress =
-    campaignState.selectedAddresses[0]?.displayAddress ?? "14 Maple Avenue"
+  const exampleRecipient = campaignState.selectedAddresses[0] ?? null
 
   const isComplete =
     draft !== null &&
@@ -68,10 +67,10 @@ export function MobileLetterPageClient() {
               templateId: "friendly-home-mover",
               senderName: "",
               senderAddress: "",
-              personalMessage: "",
             }
           }
-          recipientAddress={exampleAddress}
+          recipient={exampleRecipient}
+          refineFilters={campaignState.refineFilters}
         />
         <p className="text-[11px] text-navy-soft/70 text-center mt-3">
           This is a preview of the letter that will be printed and posted to each homeowner.

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
 import { formatPence, calcTotalPence, PRICING } from "@/lib/constants"
 import { StickyCTA } from "@/components/mobile/StickyCTA"
-import { renderTemplate } from "@/features/letter/templates/friendly-home-mover"
+import { renderLetterText } from "@/features/letter/templates/friendly-home-mover"
 
 export function MobileBasketSummary() {
   const router = useRouter()
@@ -28,7 +28,10 @@ export function MobileBasketSummary() {
 
   const totalPence = calcTotalPence(selectedAddresses.length)
   const letterSnippet = letterContent
-    ? renderTemplate(letterContent).slice(0, 180) + "…"
+    ? renderLetterText(letterContent, selectedAddresses[0] ?? null, state.refineFilters).slice(
+        0,
+        180,
+      ) + "…"
     : null
 
   function handleProceed() {
