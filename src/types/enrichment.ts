@@ -24,6 +24,7 @@ export const EnrichedAttributesSchema = z.object({
   floorAreaEstimated: z.boolean().nullable(),
   parking: z.boolean().nullable(),
   garage: z.boolean().nullable(),
+  garden: z.boolean().nullable(),
   /** EPC band A–G. */
   epcRating: z.string().nullable(),
   /** Council tax band A–H (A–I in Wales). */
@@ -143,6 +144,23 @@ export const ChimnieResidentialResponseSchema = z.object({
               sales_nearby_12m: z.number().optional(),
               sales_yoy: z.number().optional(),
               average_years_owned: z.number().optional(),
+            })
+            .optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+  premium: z
+    .object({
+      property: z
+        .object({
+          attributes: z
+            .object({
+              outdoor: z
+                .object({
+                  garden: z.boolean().optional(),
+                })
+                .optional(),
             })
             .optional(),
         })

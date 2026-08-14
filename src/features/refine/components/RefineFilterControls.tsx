@@ -111,6 +111,15 @@ export function RefineFilterControls({ filters, onChange }: RefineFilterControls
           <label className="flex items-center gap-2 text-sm text-navy cursor-pointer">
             <input
               type="checkbox"
+              checked={filters.mustHaveGarden}
+              onChange={(e) => onChange({ ...filters, mustHaveGarden: e.target.checked })}
+              className="accent-coral"
+            />
+            Garden
+          </label>
+          <label className="flex items-center gap-2 text-sm text-navy cursor-pointer">
+            <input
+              type="checkbox"
               checked={filters.mustHaveParking}
               onChange={(e) => onChange({ ...filters, mustHaveParking: e.target.checked })}
               className="accent-coral"

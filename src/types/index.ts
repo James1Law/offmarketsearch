@@ -24,6 +24,7 @@ export const RefineFiltersSchema = z.object({
   minBedrooms: z.number().int().min(0),
   /** 0 means "any". */
   minFloorAreaSqm: z.number().int().min(0),
+  mustHaveGarden: z.boolean(),
   mustHaveParking: z.boolean(),
   mustHaveGarage: z.boolean(),
   /** Minimum years the current owner has held the property. 0 means "any". */

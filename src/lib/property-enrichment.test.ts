@@ -4,7 +4,7 @@ import {
   mapPropertyType,
   sampleEnrichment,
   isSandboxAddress,
-  CHIMNIE_CORE_FIELDS,
+  CHIMNIE_FIELDS,
 } from "./property-enrichment"
 import {
   ChimnieResidentialResponseSchema,
@@ -58,6 +58,9 @@ const FULL_RESPONSE = {
       },
     },
   },
+  premium: {
+    property: { attributes: { outdoor: { garden: true } } },
+  },
   // Unknown keys must be tolerated (stripped) at the boundary.
   unexpected_future_field: { foo: "bar" },
 }
@@ -100,6 +103,7 @@ describe("mapChimnieResponse", () => {
       floorAreaEstimated: true,
       parking: true,
       garage: false,
+      garden: true,
       epcRating: "C",
       councilTaxBand: "D",
       estimatedValueGbp: 285000,
@@ -195,15 +199,21 @@ describe("isSandboxAddress", () => {
   })
 })
 
-describe("CHIMNIE_CORE_FIELDS", () => {
-  it("never includes plus or premium tier fields", () => {
-    for (const field of CHIMNIE_CORE_FIELDS.split(",")) {
+describe("CHIMNIE_FIELDS", () => {
+  // Garden is a deliberate product decision: it prices every lookup at the
+  // 15p Premium rate instead of 10p Core. Nothing else may raise the tier.
+  const ALLOWED_PREMIUM_FIELDS = ["premium.property.attributes.outdoor.garden"]
+
+  it("only includes deliberately allowed premium fields and no plus fields", () => {
+    for (const field of CHIMNIE_FIELDS.split(",")) {
       expect(field.startsWith("plus.")).toBe(false)
-      expect(field.startsWith("premium.")).toBe(false)
+      if (field.startsWith("premium.")) {
+        expect(ALLOWED_PREMIUM_FIELDS).toContain(field)
+      }
     }
   })
 
   it("is a non-empty explicit list (blank fields would bill at Premium rate)", () => {
-    expect(CHIMNIE_CORE_FIELDS.length).toBeGreaterThan(0)
+    expect(CHIMNIE_FIELDS.length).toBeGreaterThan(0)
   })
 })

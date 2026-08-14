@@ -10,6 +10,7 @@ const FULL: EnrichedAttributes = {
   floorAreaEstimated: false,
   parking: true,
   garage: false,
+  garden: true,
   epcRating: "C",
   councilTaxBand: "D",
   estimatedValueGbp: 285000,
@@ -27,6 +28,7 @@ const UNKNOWN: EnrichedAttributes = {
   floorAreaEstimated: null,
   parking: null,
   garage: null,
+  garden: null,
   epcRating: null,
   councilTaxBand: null,
   estimatedValueGbp: null,
@@ -57,10 +59,12 @@ describe("matchesFilters", () => {
     expect(matchesFilters(FULL, { ...DEFAULT_FILTERS, minFloorAreaSqm: 75 })).toBe(true)
   })
 
-  it("requires parking/garage to be affirmatively true", () => {
+  it("requires garden/parking/garage to be affirmatively true", () => {
     expect(matchesFilters(FULL, { ...DEFAULT_FILTERS, mustHaveParking: true })).toBe(true)
+    expect(matchesFilters(FULL, { ...DEFAULT_FILTERS, mustHaveGarden: true })).toBe(true)
     expect(matchesFilters(FULL, { ...DEFAULT_FILTERS, mustHaveGarage: true })).toBe(false)
     expect(matchesFilters(UNKNOWN, { ...DEFAULT_FILTERS, mustHaveParking: true })).toBe(false)
+    expect(matchesFilters(UNKNOWN, { ...DEFAULT_FILTERS, mustHaveGarden: true })).toBe(false)
   })
 
   it("filters by years owned", () => {

@@ -7,6 +7,7 @@ export const DEFAULT_FILTERS: RefineFilters = {
   propertyTypes: [],
   minBedrooms: 0,
   minFloorAreaSqm: 0,
+  mustHaveGarden: false,
   mustHaveParking: false,
   mustHaveGarage: false,
   minYearsOwned: 0,
@@ -91,6 +92,7 @@ export function matchesFilters(attributes: EnrichedAttributes, filters: RefineFi
       attributes.floorAreaSqm,
       (a) => a >= filters.minFloorAreaSqm,
     ) &&
+    check(filters.mustHaveGarden, attributes.garden, (g) => g) &&
     check(filters.mustHaveParking, attributes.parking, (p) => p) &&
     check(filters.mustHaveGarage, attributes.garage, (g) => g) &&
     check(filters.minYearsOwned > 0, attributes.yearsOwned, (y) => y >= filters.minYearsOwned) &&
@@ -112,6 +114,7 @@ export function isDefaultFilters(filters: RefineFilters): boolean {
     filters.propertyTypes.length === 0 &&
     filters.minBedrooms === 0 &&
     filters.minFloorAreaSqm === 0 &&
+    !filters.mustHaveGarden &&
     !filters.mustHaveParking &&
     !filters.mustHaveGarage &&
     filters.minYearsOwned === 0 &&

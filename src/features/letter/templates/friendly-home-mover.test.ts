@@ -45,9 +45,21 @@ describe("describeCriteria", () => {
         ...DEFAULT_FILTERS,
         propertyTypes: ["detached", "semi-detached"],
         minBedrooms: 3,
+        mustHaveGarden: true,
         mustHaveParking: true,
       }),
-    ).toBe("a detached or semi-detached property with 3+ bedrooms and off-street parking")
+    ).toBe(
+      "a detached or semi-detached property with 3+ bedrooms, a garden and off-street parking",
+    )
+  })
+
+  it("never mentions the sender's budget", () => {
+    const phrase = describeCriteria({
+      ...DEFAULT_FILTERS,
+      propertyTypes: ["detached"],
+      maxEstimatedValueGbp: 500_000,
+    })
+    expect(phrase).toBe("a detached property")
   })
 
   it("does not leak ownership-length targeting into the letter", () => {

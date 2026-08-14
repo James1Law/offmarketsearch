@@ -69,6 +69,7 @@ export function PropertyCard({ address, attributes, matched, loading }: Property
             {attributes.councilTaxBand && (
               <AttributeChip>Tax band {attributes.councilTaxBand}</AttributeChip>
             )}
+            {attributes.garden === true && <AttributeChip>Garden</AttributeChip>}
             {attributes.parking === true && <AttributeChip>Parking</AttributeChip>}
             {attributes.garage === true && <AttributeChip>Garage</AttributeChip>}
           </div>
