@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation"
 import { StickyCTA } from "@/components/mobile/StickyCTA"
 import { RefineFilterControls } from "./RefineFilterControls"
 import { PropertyCard } from "./PropertyCard"
+import { AreaInsights } from "./AreaInsights"
+import { DataAttribution } from "./DataAttribution"
 import { useEnrichment } from "../hooks/useEnrichment"
 import { matchesFilters, normaliseFilters, type RefineFilters } from "../filters"
 import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
@@ -30,6 +32,9 @@ export function MobileRefinePageClient() {
   const matchedRows = rows.filter((r) => r.matched)
   const loadingCount = rows.filter((r) => r.loading).length
   const liveCount = rows.filter((r) => r.result?.source === "chimnie").length
+  const areaStats =
+    (rows.find((r) => r.result?.source === "chimnie" && r.result.areaStats) ??
+      rows.find((r) => r.result?.areaStats))?.result?.areaStats ?? null
 
   function handleNext() {
     if (matchedRows.length === 0) return
@@ -78,6 +83,7 @@ export function MobileRefinePageClient() {
                 : "Sample data for this prototype"}
           </span>
         </div>
+        {areaStats && <AreaInsights stats={areaStats} />}
         <div className="flex flex-col gap-2.5 pb-4">
           {rows.map(({ address, result, loading, matched }) => (
             <PropertyCard
@@ -89,6 +95,7 @@ export function MobileRefinePageClient() {
             />
           ))}
         </div>
+        {liveCount > 0 && <DataAttribution />}
       </section>
 
       <StickyCTA>

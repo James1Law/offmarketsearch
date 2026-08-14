@@ -4,6 +4,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { RefineFilterControls } from "./RefineFilterControls"
 import { PropertyCard } from "./PropertyCard"
+import { AreaInsights } from "./AreaInsights"
+import { DataAttribution } from "./DataAttribution"
 import { useEnrichment } from "../hooks/useEnrichment"
 import { matchesFilters, normaliseFilters, type RefineFilters } from "../filters"
 import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
@@ -30,6 +32,9 @@ export function RefinePageClient() {
   const matchedRows = rows.filter((r) => r.matched)
   const loadingCount = rows.filter((r) => r.loading).length
   const liveCount = rows.filter((r) => r.result?.source === "chimnie").length
+  const areaStats =
+    (rows.find((r) => r.result?.source === "chimnie" && r.result.areaStats) ??
+      rows.find((r) => r.result?.areaStats))?.result?.areaStats ?? null
 
   function handleNext() {
     if (matchedRows.length === 0) return
@@ -93,6 +98,7 @@ export function RefinePageClient() {
                   : "Sample property data for this prototype"}
             </span>
           </div>
+          {areaStats && <AreaInsights stats={areaStats} />}
           <div className="grid gap-3 sm:grid-cols-2">
             {rows.map(({ address, result, loading, matched }) => (
               <PropertyCard
@@ -104,6 +110,7 @@ export function RefinePageClient() {
               />
             ))}
           </div>
+          {liveCount > 0 && <DataAttribution />}
         </div>
       </div>
     </div>

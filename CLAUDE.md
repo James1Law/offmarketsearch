@@ -179,7 +179,7 @@ supabase migration new <name>   # create a new migration
 
 - `/` — landing page
 - `/map` — MapLibre map, draw rectangle, Overpass/Nominatim address fetch, address list
-- `/refine` — filter selected addresses by property type, size, attributes (sample data pending a property-data API)
+- `/refine` — filter selected addresses by property type, size, attributes, years owned. Real data via the Chimnie Data API (`lib/property-enrichment.ts`; set `CHIMNIE_API_KEY`), with the free sandbox postcode CH1 1MN demoable keyless ("Try demo addresses" on the map page) and a deterministic sample-data fallback otherwise. Never call Chimnie with a blank `fields` param (bills at Premium rate).
 - `/letter` — template editor + HTML letter preview
 - `/basket` — address list, pricing, mock checkout CTA
 - `/confirm` — order confirmation (mock)
