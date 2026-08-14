@@ -55,16 +55,21 @@ export function PropertyCard({ address, attributes, matched, loading }: Property
             )}
             {attributes.bedrooms !== null && (
               <AttributeChip>
+                {attributes.bedroomsEstimated ? "~" : ""}
                 {attributes.bedrooms} bed{attributes.bedrooms === 1 ? "" : "s"}
               </AttributeChip>
             )}
             {attributes.floorAreaSqm !== null && (
-              <AttributeChip>{attributes.floorAreaSqm} m²</AttributeChip>
+              <AttributeChip>
+                {attributes.floorAreaEstimated ? "~" : ""}
+                {attributes.floorAreaSqm} m²
+              </AttributeChip>
             )}
             {attributes.epcRating && <AttributeChip>EPC {attributes.epcRating}</AttributeChip>}
             {attributes.councilTaxBand && (
               <AttributeChip>Tax band {attributes.councilTaxBand}</AttributeChip>
             )}
+            {attributes.garden === true && <AttributeChip>Garden</AttributeChip>}
             {attributes.parking === true && <AttributeChip>Parking</AttributeChip>}
             {attributes.garage === true && <AttributeChip>Garage</AttributeChip>}
           </div>

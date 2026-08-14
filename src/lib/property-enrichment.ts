@@ -24,14 +24,22 @@ const CHIMNIE_BASE_URL = "https://api.chimnie.com"
 /** Free sandbox postcode — works without an API key. */
 export const CHIMNIE_SANDBOX_POSTCODE = "CH1 1MN"
 
-// Explicit Core-tier field list. NEVER request with a blank fields parameter:
-// blank means "everything" and bills at the Premium rate (15p) per lookup.
-export const CHIMNIE_CORE_FIELDS = [
+// Explicit field list. NEVER request with a blank fields parameter: blank
+// means "everything" and always bills at the Premium rate.
+//
+// Cost note: garden is deliberately included from the Premium tier — a
+// product decision — which prices every lookup at 15p instead of the 10p
+// Core rate. Keep all other fields Core; the tier-safety unit test enforces
+// an explicit allowlist.
+export const CHIMNIE_FIELDS = [
+  "premium.property.attributes.outdoor.garden",
   "property.attributes.status.property_type_predicted",
   "property.attributes.status.epc_property_type",
   "property.attributes.status.epc_built_form",
   "property.attributes.indoor.bedrooms_declared_and_predicted",
+  "property.attributes.indoor.bedrooms_declared_only",
   "property.attributes.indoor.floor_area_declared_and_predicted",
+  "property.attributes.indoor.floor_area_declared_only",
   "property.attributes.outdoor.parking",
   "property.attributes.outdoor.garage",
   "property.bills.tax.council_tax_band_declared_and_predicted",
@@ -93,15 +101,21 @@ export function mapChimnieResponse(
 
   const propensity = SalePropensitySchema.safeParse(sale?.sale_propensity)
 
+  const bedrooms = attrs?.indoor?.bedrooms_declared_and_predicted ?? null
+  const floorArea = attrs?.indoor?.floor_area_declared_and_predicted ?? null
+
   const attributes: EnrichedAttributes = {
     propertyType: mapPropertyType(attrs?.status ?? {}),
-    bedrooms: attrs?.indoor?.bedrooms_declared_and_predicted ?? null,
-    floorAreaSqm:
-      attrs?.indoor?.floor_area_declared_and_predicted != null
-        ? Math.round(attrs.indoor.floor_area_declared_and_predicted)
-        : null,
+    bedrooms,
+    // A value with no declared counterpart came from Chimnie's model.
+    bedroomsEstimated:
+      bedrooms === null ? null : attrs?.indoor?.bedrooms_declared_only == null,
+    floorAreaSqm: floorArea !== null ? Math.round(floorArea) : null,
+    floorAreaEstimated:
+      floorArea === null ? null : attrs?.indoor?.floor_area_declared_only == null,
     parking: attrs?.outdoor?.parking ?? null,
     garage: attrs?.outdoor?.garage ?? null,
+    garden: raw.premium?.property?.attributes?.outdoor?.garden ?? null,
     epcRating: normaliseBand(
       raw.property?.bills?.energy?.current_energy_rating_declared_and_predicted,
       "ABCDEFG",
@@ -155,7 +169,7 @@ async function fetchChimnieByAddress(
   const res = await fetch(`${CHIMNIE_BASE_URL}/residential/address`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ address: address.displayAddress, fields: CHIMNIE_CORE_FIELDS }),
+    body: JSON.stringify({ address: address.displayAddress, fields: CHIMNIE_FIELDS }),
     signal: AbortSignal.timeout(15000),
     cache: "no-store",
   })
@@ -229,6 +243,7 @@ export function sampleEnrichment(address: SelectedAddress): EnrichmentResult {
   const floorAreaSqm = Math.round(bedrooms * 28 + 20 + rand() * 40)
   const parking = rand() < (propertyType === "detached" ? 0.9 : 0.55)
   const garage = parking && rand() < 0.5
+  const garden = rand() < (propertyType === "flat" ? 0.2 : 0.85)
   const epcRating = pick(["B", "C", "C", "D", "D", "D", "E", "F"], rand(), "D")
   const councilTaxBand = pick(["B", "C", "C", "D", "D", "E", "F"], rand(), "D")
   const yearsOwned = 1 + Math.floor(rand() * 30)
@@ -259,9 +274,12 @@ export function sampleEnrichment(address: SelectedAddress): EnrichmentResult {
     attributes: {
       propertyType,
       bedrooms,
+      bedroomsEstimated: false,
       floorAreaSqm,
+      floorAreaEstimated: false,
       parking,
       garage,
+      garden,
       epcRating,
       councilTaxBand,
       estimatedValueGbp,

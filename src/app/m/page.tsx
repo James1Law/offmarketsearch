@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { LogoMark } from "@/components/logo"
 
-export const metadata = { title: "Offline.homes — Write to homeowners near you" }
+export const metadata = { title: "Offline.homes — Write to homeowners before they sell" }
 
 const HOW_STEPS = [
   {
@@ -53,7 +53,7 @@ export default function MobileHomePage() {
           href="/m/map"
           className="inline-flex items-center justify-center w-full bg-coral active:bg-coral-dark text-white font-semibold py-3.5 rounded-xl text-base"
         >
-          Find houses near me →
+          Find your dream street →
         </Link>
       </section>
 

@@ -24,10 +24,16 @@ export const RefineFiltersSchema = z.object({
   minBedrooms: z.number().int().min(0),
   /** 0 means "any". */
   minFloorAreaSqm: z.number().int().min(0),
+  mustHaveGarden: z.boolean(),
   mustHaveParking: z.boolean(),
   mustHaveGarage: z.boolean(),
   /** Minimum years the current owner has held the property. 0 means "any". */
   minYearsOwned: z.number().int().min(0),
+  /** Estimated-value budget range in whole GBP. 0 means "any". */
+  minEstimatedValueGbp: z.number().int().min(0),
+  maxEstimatedValueGbp: z.number().int().min(0),
+  /** When true, active filters keep properties whose data for that field is unknown. */
+  includeUnknownData: z.boolean(),
 })
 
 export type RefineFilters = z.infer<typeof RefineFiltersSchema>

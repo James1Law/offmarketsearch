@@ -32,6 +32,20 @@ export function RefinePageClient() {
   const matchedRows = rows.filter((r) => r.matched)
   const loadingCount = rows.filter((r) => r.loading).length
   const liveCount = rows.filter((r) => r.result?.source === "chimnie").length
+  const excludedForUnknown = filters.includeUnknownData
+    ? 0
+    : rows.filter(
+        (r) =>
+          !r.matched &&
+          r.result !== null &&
+          matchesFilters(r.result.attributes, { ...filters, includeUnknownData: true }),
+      ).length
+  const anyEstimated = rows.some(
+    (r) =>
+      r.matched &&
+      (r.result?.attributes.bedroomsEstimated === true ||
+        r.result?.attributes.floorAreaEstimated === true),
+  )
   const areaStats =
     (rows.find((r) => r.result?.source === "chimnie" && r.result.areaStats) ??
       rows.find((r) => r.result?.areaStats))?.result?.areaStats ?? null
@@ -98,6 +112,19 @@ export function RefinePageClient() {
                   : "Sample property data for this prototype"}
             </span>
           </div>
+          {excludedForUnknown > 0 && (
+            <p className="text-xs text-navy-soft bg-white border border-sand rounded-lg px-3 py-2 mb-4">
+              {excludedForUnknown}{" "}
+              {excludedForUnknown === 1 ? "property is" : "properties are"} hidden only because
+              a filtered detail is unknown.{" "}
+              <button
+                onClick={() => setFilters({ ...filters, includeUnknownData: true })}
+                className="text-coral font-medium hover:underline"
+              >
+                Include them anyway
+              </button>
+            </p>
+          )}
           {areaStats && <AreaInsights stats={areaStats} />}
           <div className="grid gap-3 sm:grid-cols-2">
             {rows.map(({ address, result, loading, matched }) => (
@@ -110,6 +137,11 @@ export function RefinePageClient() {
               />
             ))}
           </div>
+          {anyEstimated && (
+            <p className="text-[10px] text-navy-soft/60 mt-3">
+              ~ estimated from Chimnie&apos;s property model where no declared value exists
+            </p>
+          )}
           {liveCount > 0 && <DataAttribution />}
         </div>
       </div>

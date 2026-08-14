@@ -5,6 +5,8 @@ import {
   BEDROOM_OPTIONS,
   DEFAULT_FILTERS,
   FLOOR_AREA_OPTIONS,
+  MAX_VALUE_OPTIONS,
+  MIN_VALUE_OPTIONS,
   PROPERTY_TYPE_LABELS,
   YEARS_OWNED_OPTIONS,
   isDefaultFilters,
@@ -109,6 +111,15 @@ export function RefineFilterControls({ filters, onChange }: RefineFilterControls
           <label className="flex items-center gap-2 text-sm text-navy cursor-pointer">
             <input
               type="checkbox"
+              checked={filters.mustHaveGarden}
+              onChange={(e) => onChange({ ...filters, mustHaveGarden: e.target.checked })}
+              className="accent-coral"
+            />
+            Garden
+          </label>
+          <label className="flex items-center gap-2 text-sm text-navy cursor-pointer">
+            <input
+              type="checkbox"
               checked={filters.mustHaveParking}
               onChange={(e) => onChange({ ...filters, mustHaveParking: e.target.checked })}
               className="accent-coral"
@@ -125,6 +136,46 @@ export function RefineFilterControls({ filters, onChange }: RefineFilterControls
             Garage
           </label>
         </div>
+      </fieldset>
+
+      {/* Budget — filters the list only, never written into the letter */}
+      <fieldset>
+        <legend className="text-xs font-semibold text-navy uppercase tracking-wide mb-2">
+          Estimated value
+        </legend>
+        <div className="flex gap-2">
+          <select
+            aria-label="Minimum estimated value"
+            value={filters.minEstimatedValueGbp}
+            onChange={(e) =>
+              onChange({ ...filters, minEstimatedValueGbp: Number(e.target.value) })
+            }
+            className="flex-1 min-w-0 text-sm border border-sand rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-coral"
+          >
+            {MIN_VALUE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Maximum estimated value"
+            value={filters.maxEstimatedValueGbp}
+            onChange={(e) =>
+              onChange({ ...filters, maxEstimatedValueGbp: Number(e.target.value) })
+            }
+            className="flex-1 min-w-0 text-sm border border-sand rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-coral"
+          >
+            {MAX_VALUE_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="text-[11px] text-navy-soft/70 mt-1.5">
+          Your budget stays private — it&apos;s never mentioned in the letter
+        </p>
       </fieldset>
 
       {/* Ownership length — long-term owners are the strongest off-market leads */}
@@ -151,6 +202,22 @@ export function RefineFilterControls({ filters, onChange }: RefineFilterControls
           Long-term owners are more likely to consider an off-market sale
         </p>
       </div>
+
+      {/* Missing data behaviour */}
+      <label className="flex items-start gap-2 text-xs text-navy-soft cursor-pointer">
+        <input
+          type="checkbox"
+          checked={filters.includeUnknownData}
+          onChange={(e) => onChange({ ...filters, includeUnknownData: e.target.checked })}
+          className="accent-coral mt-0.5"
+        />
+        <span>
+          Include properties with missing data
+          <span className="block text-[11px] text-navy-soft/70">
+            Keep properties even when a filtered detail is unknown
+          </span>
+        </span>
+      </label>
 
       {!isDefaultFilters(filters) && (
         <button

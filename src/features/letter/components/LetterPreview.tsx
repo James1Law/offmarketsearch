@@ -1,6 +1,7 @@
 "use client"
 
 import type { LetterContent, RefineFilters, SelectedAddress } from "@/types"
+import { Logo } from "@/components/logo"
 import { renderLetter } from "../templates/friendly-home-mover"
 
 interface LetterPreviewProps {
@@ -37,8 +38,9 @@ export function LetterPreview({ content, recipient, refineFilters }: LetterPrevi
       {/* Letter body */}
       {hasAnyInput ? (
         <div className="px-6 sm:px-8 py-6 text-sm text-slate-800 leading-relaxed" style={SERIF}>
-          {/* Sender address, contact details and date — top right */}
-          <div className="flex justify-end">
+          {/* Letterhead: brand top left; sender address, contact details and date top right */}
+          <div className="flex justify-between items-start gap-4">
+            <Logo markClassName="w-8 h-8" textClassName="text-sm" />
             <div className="text-right">
               {letter.senderLines.map((line, i) => (
                 <div key={i}>{line}</div>
