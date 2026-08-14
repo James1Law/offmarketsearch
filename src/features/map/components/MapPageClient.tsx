@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { AddressList } from "./AddressList"
 import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
+import { loadSandboxAddresses } from "../actions"
 import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
 import type { SelectedAddress } from "@/types"
 
@@ -24,6 +25,18 @@ export function MapPageClient() {
   const [drawMode, setDrawMode] = useState<DrawMode>("idle")
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchResults, setShowSearchResults] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
+
+  async function handleLoadDemo() {
+    setDemoLoading(true)
+    try {
+      const demo = await loadSandboxAddresses()
+      campaignStore.setAddresses(demo)
+      router.push("/refine")
+    } catch {
+      setDemoLoading(false)
+    }
+  }
 
   const selectedIds = useMemo(
     () => new Set(campaignState.selectedAddresses.map((a) => a.id)),
@@ -152,6 +165,13 @@ export function MapPageClient() {
             <p className="text-xs text-navy-soft mt-0.5">
               Draw a rectangle on the map to find addresses
             </p>
+            <button
+              onClick={handleLoadDemo}
+              disabled={demoLoading}
+              className="text-xs text-coral font-medium hover:underline mt-1 disabled:opacity-50"
+            >
+              {demoLoading ? "Loading demo addresses…" : "Or try demo addresses →"}
+            </button>
           </div>
           <AddressList
             addresses={addresses}

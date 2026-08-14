@@ -7,6 +7,7 @@ import { BottomSheet, type SnapRequest } from "@/components/mobile/BottomSheet"
 import { MobileAddressList } from "./MobileAddressList"
 import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
+import { loadSandboxAddresses } from "../actions"
 import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
 import type { SelectedAddress } from "@/types"
 
@@ -34,6 +35,18 @@ export function MobileMapPageClient() {
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchResults, setShowSearchResults] = useState(false)
   const [snapRequest, setSnapRequest] = useState<SnapRequest | undefined>(undefined)
+  const [demoLoading, setDemoLoading] = useState(false)
+
+  async function handleLoadDemo() {
+    setDemoLoading(true)
+    try {
+      const demo = await loadSandboxAddresses()
+      campaignStore.setAddresses(demo)
+      router.push("/m/refine")
+    } catch {
+      setDemoLoading(false)
+    }
+  }
 
   const selectedIds = useMemo(
     () => new Set(campaignState.selectedAddresses.map((a) => a.id)),
@@ -207,6 +220,15 @@ export function MobileMapPageClient() {
                   ? "Select at least one address"
                   : `Next: Refine your results (${selectedCount}) →`}
               </button>
+              {selectedCount === 0 && (
+                <button
+                  onClick={handleLoadDemo}
+                  disabled={demoLoading}
+                  className="w-full text-center text-xs text-coral font-medium py-2 disabled:opacity-50"
+                >
+                  {demoLoading ? "Loading demo addresses…" : "Or try demo addresses →"}
+                </button>
+              )}
             </div>
           }
         >

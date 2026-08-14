@@ -6,6 +6,7 @@ import {
   DEFAULT_FILTERS,
   FLOOR_AREA_OPTIONS,
   PROPERTY_TYPE_LABELS,
+  YEARS_OWNED_OPTIONS,
   isDefaultFilters,
   type RefineFilters,
 } from "../filters"
@@ -108,23 +109,48 @@ export function RefineFilterControls({ filters, onChange }: RefineFilterControls
           <label className="flex items-center gap-2 text-sm text-navy cursor-pointer">
             <input
               type="checkbox"
-              checked={filters.mustHaveGarden}
-              onChange={(e) => onChange({ ...filters, mustHaveGarden: e.target.checked })}
-              className="accent-coral"
-            />
-            Garden
-          </label>
-          <label className="flex items-center gap-2 text-sm text-navy cursor-pointer">
-            <input
-              type="checkbox"
               checked={filters.mustHaveParking}
               onChange={(e) => onChange({ ...filters, mustHaveParking: e.target.checked })}
               className="accent-coral"
             />
             Off-street parking
           </label>
+          <label className="flex items-center gap-2 text-sm text-navy cursor-pointer">
+            <input
+              type="checkbox"
+              checked={filters.mustHaveGarage}
+              onChange={(e) => onChange({ ...filters, mustHaveGarage: e.target.checked })}
+              className="accent-coral"
+            />
+            Garage
+          </label>
         </div>
       </fieldset>
+
+      {/* Ownership length — long-term owners are the strongest off-market leads */}
+      <div>
+        <label
+          htmlFor="refine-years-owned"
+          className="block text-xs font-semibold text-navy uppercase tracking-wide mb-2"
+        >
+          Current owner for
+        </label>
+        <select
+          id="refine-years-owned"
+          value={filters.minYearsOwned}
+          onChange={(e) => onChange({ ...filters, minYearsOwned: Number(e.target.value) })}
+          className="w-full text-sm border border-sand rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-coral"
+        >
+          {YEARS_OWNED_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <p className="text-[11px] text-navy-soft/70 mt-1.5">
+          Long-term owners are more likely to consider an off-market sale
+        </p>
+      </div>
 
       {!isDefaultFilters(filters) && (
         <button

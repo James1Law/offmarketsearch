@@ -2,13 +2,24 @@
 
 import { useSyncExternalStore } from "react"
 import type { CampaignState, SelectedAddress, LetterContent, RefineFilters } from "@/types"
+import type { EnrichmentResult } from "@/types/enrichment"
 
 const STORAGE_KEY = "offline-homes-campaign"
 
 const defaultState: CampaignState = {
   selectedAddresses: [],
   refineFilters: null,
+  enrichment: {},
   letterContent: null,
+}
+
+/** Drop enrichment entries whose address is no longer selected. */
+function pruneEnrichment(
+  enrichment: CampaignState["enrichment"],
+  addresses: SelectedAddress[],
+): CampaignState["enrichment"] {
+  const keep = new Set(addresses.map((a) => a.id))
+  return Object.fromEntries(Object.entries(enrichment).filter(([id]) => keep.has(id)))
 }
 
 function readFromStorage(): CampaignState {
@@ -60,14 +71,30 @@ if (typeof window !== "undefined") {
 
 export const campaignStore = {
   setAddresses(addresses: SelectedAddress[]): void {
-    setState({ ...currentState, selectedAddresses: addresses })
+    setState({
+      ...currentState,
+      selectedAddresses: addresses,
+      enrichment: pruneEnrichment(currentState.enrichment, addresses),
+    })
   },
   toggleAddress(address: SelectedAddress): void {
     const exists = currentState.selectedAddresses.some((a) => a.id === address.id)
     const next = exists
       ? currentState.selectedAddresses.filter((a) => a.id !== address.id)
       : [...currentState.selectedAddresses, address]
-    setState({ ...currentState, selectedAddresses: next })
+    setState({
+      ...currentState,
+      selectedAddresses: next,
+      enrichment: pruneEnrichment(currentState.enrichment, next),
+    })
+  },
+  mergeEnrichment(results: EnrichmentResult[]): void {
+    const merged = { ...currentState.enrichment }
+    for (const result of results) merged[result.addressId] = result
+    setState({
+      ...currentState,
+      enrichment: pruneEnrichment(merged, currentState.selectedAddresses),
+    })
   },
   setRefineFilters(filters: RefineFilters): void {
     setState({ ...currentState, refineFilters: filters })
