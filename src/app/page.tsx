@@ -31,7 +31,7 @@ export default function HomePage() {
           href="/map"
           className="inline-flex items-center gap-2 bg-coral hover:bg-coral-dark text-white font-semibold px-8 py-3.5 rounded-lg text-base transition-colors"
         >
-          Find houses near me →
+          Find your dream street →
         </Link>
       </section>
 

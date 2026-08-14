@@ -11,11 +11,11 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://offline.homes"),
-  title: "Offline.homes — Write to homeowners near you",
+  title: "Offline.homes — Write to homeowners before they sell",
   description:
     "Find your dream home before it hits the market. Select houses on a map, write a personal letter, and we'll post it for you.",
   openGraph: {
-    title: "Offline.homes — Write to homeowners near you",
+    title: "Offline.homes — Write to homeowners before they sell",
     description:
       "Find your dream home before it hits the market. Select houses on a map, write a personal letter, and we'll post it for you.",
     url: "https://offline.homes",
