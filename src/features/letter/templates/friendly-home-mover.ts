@@ -125,6 +125,10 @@ export function describeCriteria(filters: RefineFilters | null): string | null {
   if (filters.mustHaveParking) withParts.push("off-street parking")
   if (filters.mustHaveGarage) withParts.push("a garage")
 
+  // Filters like years-owned target the owner, not the property — if nothing
+  // letter-worthy is set, don't generate a criteria phrase at all.
+  if (!typePhrase && withParts.length === 0) return null
+
   let phrase = typePhrase ? `a ${typePhrase} property` : "a property"
   if (withParts.length > 0) phrase += ` with ${joinList(withParts, "and")}`
   return phrase
@@ -203,14 +207,10 @@ export function renderLetter(
     content.timescale ? TIMESCALE_SENTENCES[content.timescale] : null,
   ].filter((s): s is string => s !== null)
 
-  const contactMethods = [
-    senderPhone ? `call or text me on ${senderPhone}` : null,
-    senderEmail ? `email me at ${senderEmail}` : null,
-  ].filter((m): m is string => m !== null)
-
+  // Contact details live in the letterhead, so the body just points there.
   const reachMe =
-    contactMethods.length > 0
-      ? `You can ${contactMethods.join(", ")}, or reply to this letter at the address above.`
+    senderPhone || senderEmail
+      ? "You can contact me through any of the means provided at the top of this letter."
       : "You can reach me by replying to this letter at the address above."
 
   const paragraphs = [
