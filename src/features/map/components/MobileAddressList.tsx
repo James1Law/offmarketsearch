@@ -35,7 +35,7 @@ export function MobileAddressList({
   if (addresses.length === 0) {
     return (
       <div className="p-6 text-sm text-navy-soft text-center">
-        Draw a rectangle on the map to find addresses.
+        Zoom in to see addresses on the map, or draw an area around the homes you want.
       </div>
     )
   }
