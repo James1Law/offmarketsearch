@@ -9,14 +9,14 @@ import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
 import { loadSandboxAddresses } from "../actions"
 import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
+import { MAP_DEFAULTS, LIMITS } from "@/lib/constants"
 import type { SelectedAddress } from "@/types"
+import type { PolygonRing } from "@/lib/geocoding/overpass"
 
 const PropertyMap = dynamic(
   () => import("./PropertyMap").then((m) => m.PropertyMap),
   { ssr: false, loading: () => <div className="w-full h-full bg-sand animate-pulse" /> },
 )
-
-type DrawMode = "idle" | "first-click" | "second-click"
 
 // Keep drawn results visible above the collapsed bottom sheet when fitting the map.
 const MOBILE_FIT_PADDING = { top: 40, bottom: 240, left: 40, right: 40 }
@@ -24,14 +24,15 @@ const MOBILE_FIT_PADDING = { top: 40, bottom: 240, left: 40, right: 40 }
 export function MobileMapPageClient() {
   const router = useRouter()
   const campaignState = useCampaignStore()
-  const { addresses, loading, error, fetch: fetchAddresses, clear } = useOverpassAddresses()
+  const { addresses, loading, error, fetchPolygon, fetchViewport, clear } = useOverpassAddresses()
   const {
     results: searchResults,
     loading: searchLoading,
     search,
     clear: clearSearch,
   } = useNominatimSearch()
-  const [drawMode, setDrawMode] = useState<DrawMode>("idle")
+  const [drawing, setDrawing] = useState(false)
+  const [zoom, setZoom] = useState<number>(MAP_DEFAULTS.ZOOM)
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchResults, setShowSearchResults] = useState(false)
   const [snapRequest, setSnapRequest] = useState<SnapRequest | undefined>(undefined)
@@ -53,21 +54,38 @@ export function MobileMapPageClient() {
     [campaignState.selectedAddresses],
   )
 
+  // Pins show viewport/polygon results plus anything already selected, so
+  // selected addresses stay visible when the user pans elsewhere.
+  const pinAddresses = useMemo(() => {
+    const byId = new Map(addresses.map((a) => [a.id, a]))
+    for (const a of campaignState.selectedAddresses) {
+      if (!byId.has(a.id)) byId.set(a.id, a)
+    }
+    return [...byId.values()]
+  }, [addresses, campaignState.selectedAddresses])
+
   function handleToggle(address: SelectedAddress) {
+    const adding = !selectedIds.has(address.id)
+    if (adding && selectedIds.size >= LIMITS.MAX_LETTERS_PER_CAMPAIGN) return
     campaignStore.toggleAddress(address)
   }
 
   function startDrawing() {
     // Collapse the sheet so the map has maximum room while drawing.
     setSnapRequest({ index: 0, token: Date.now() })
-    setDrawMode("first-click")
+    setDrawing(true)
   }
 
-  async function handleAreaDrawn(bbox: BBox) {
+  async function handlePolygonComplete(ring: PolygonRing) {
     clear()
-    await fetchAddresses(bbox)
+    await fetchPolygon(ring)
     // Surface the results (or the error/empty message): expand the sheet to mid height.
     setSnapRequest({ index: 1, token: Date.now() })
+  }
+
+  function handleViewportChange(bbox: BBox, newZoom: number) {
+    setZoom(newZoom)
+    if (newZoom >= MAP_DEFAULTS.PIN_ZOOM) fetchViewport(bbox)
   }
 
   function handleSearchChange(value: string) {
@@ -95,12 +113,7 @@ export function MobileMapPageClient() {
   }
 
   const selectedCount = campaignState.selectedAddresses.length
-  const drawPrompt =
-    drawMode === "first-click"
-      ? "Tap the map to set the first corner"
-      : drawMode === "second-click"
-        ? "Tap the map to set the opposite corner"
-        : null
+  const showZoomHint = !drawing && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -136,7 +149,7 @@ export function MobileMapPageClient() {
             </ul>
           )}
         </div>
-        {drawMode === "idle" ? (
+        {!drawing ? (
           <button
             onClick={startDrawing}
             className="shrink-0 text-sm font-semibold px-4 py-2.5 rounded-lg bg-coral active:bg-coral-dark text-white"
@@ -146,7 +159,7 @@ export function MobileMapPageClient() {
           </button>
         ) : (
           <button
-            onClick={() => setDrawMode("idle")}
+            onClick={() => setDrawing(false)}
             className="shrink-0 text-sm font-medium px-4 py-2.5 rounded-lg border border-sand text-navy-soft"
           >
             Cancel
@@ -158,20 +171,28 @@ export function MobileMapPageClient() {
       <div className="relative flex-1 min-h-0">
         <div className="absolute inset-0">
           <PropertyMap
-            addresses={addresses}
+            addresses={pinAddresses}
             selectedIds={selectedIds}
-            drawMode={drawMode}
-            onDrawModeChange={setDrawMode}
-            onAreaDrawn={handleAreaDrawn}
-            onMarkerTap={handleToggle}
+            onToggle={handleToggle}
+            drawing={drawing}
+            onDrawingChange={setDrawing}
+            onPolygonComplete={handlePolygonComplete}
+            onViewportChange={handleViewportChange}
+            touchTargets
             showNavControl={false}
             fitPadding={MOBILE_FIT_PADDING}
           />
         </div>
 
-        {drawPrompt && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-max max-w-[85%] bg-coral text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md pointer-events-none">
-            {drawPrompt}
+        {drawing && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-max max-w-[85%] bg-coral text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md pointer-events-none text-center">
+            Tap to outline your area — tap your first point to finish
+          </div>
+        )}
+
+        {showZoomHint && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-max max-w-[85%] bg-white/95 text-navy-soft text-xs px-3 py-1.5 rounded-full shadow-md pointer-events-none text-center">
+            Search or zoom in to see addresses — or draw an area
           </div>
         )}
 

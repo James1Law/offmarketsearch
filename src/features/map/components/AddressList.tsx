@@ -31,7 +31,7 @@ export function AddressList({ addresses, selectedIds, onToggle, loading, error }
   if (addresses.length === 0) {
     return (
       <div className="p-4 text-sm text-navy-soft text-center">
-        No addresses yet. Draw a rectangle on the map.
+        No addresses yet. Zoom in to see them on the map, or draw an area.
       </div>
     )
   }

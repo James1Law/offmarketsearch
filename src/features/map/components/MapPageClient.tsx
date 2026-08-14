@@ -8,21 +8,22 @@ import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
 import { loadSandboxAddresses } from "../actions"
 import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
+import { MAP_DEFAULTS, LIMITS } from "@/lib/constants"
 import type { SelectedAddress } from "@/types"
+import type { PolygonRing } from "@/lib/geocoding/overpass"
 
 const PropertyMap = dynamic(
   () => import("./PropertyMap").then((m) => m.PropertyMap),
   { ssr: false, loading: () => <div className="w-full h-full bg-sand animate-pulse" /> },
 )
 
-type DrawMode = "idle" | "first-click" | "second-click"
-
 export function MapPageClient() {
   const router = useRouter()
   const campaignState = useCampaignStore()
-  const { addresses, loading, error, fetch: fetchAddresses, clear } = useOverpassAddresses()
+  const { addresses, loading, error, fetchPolygon, fetchViewport, clear } = useOverpassAddresses()
   const { results: searchResults, loading: searchLoading, search, clear: clearSearch } = useNominatimSearch()
-  const [drawMode, setDrawMode] = useState<DrawMode>("idle")
+  const [drawing, setDrawing] = useState(false)
+  const [zoom, setZoom] = useState<number>(MAP_DEFAULTS.ZOOM)
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchResults, setShowSearchResults] = useState(false)
   const [demoLoading, setDemoLoading] = useState(false)
@@ -43,13 +44,30 @@ export function MapPageClient() {
     [campaignState.selectedAddresses],
   )
 
+  // Pins show viewport/polygon results plus anything already selected, so
+  // selected addresses stay visible when the user pans elsewhere.
+  const pinAddresses = useMemo(() => {
+    const byId = new Map(addresses.map((a) => [a.id, a]))
+    for (const a of campaignState.selectedAddresses) {
+      if (!byId.has(a.id)) byId.set(a.id, a)
+    }
+    return [...byId.values()]
+  }, [addresses, campaignState.selectedAddresses])
+
   function handleToggle(address: SelectedAddress) {
+    const adding = !selectedIds.has(address.id)
+    if (adding && selectedIds.size >= LIMITS.MAX_LETTERS_PER_CAMPAIGN) return
     campaignStore.toggleAddress(address)
   }
 
-  function handleAreaDrawn(bbox: BBox) {
+  function handlePolygonComplete(ring: PolygonRing) {
     clear()
-    fetchAddresses(bbox)
+    fetchPolygon(ring)
+  }
+
+  function handleViewportChange(bbox: BBox, newZoom: number) {
+    setZoom(newZoom)
+    if (newZoom >= MAP_DEFAULTS.PIN_ZOOM) fetchViewport(bbox)
   }
 
   function handleSearchChange(value: string) {
@@ -62,13 +80,13 @@ export function MapPageClient() {
     setSearchQuery(result.display_name.split(",")[0] ?? result.display_name)
     setShowSearchResults(false)
     clearSearch()
-    // The map will pan via the flyTo we need to trigger — pass through a ref or event
-    // For now, user can manually navigate; search sets context
+    // PropertyMap listens for this and flies to the selected place.
     const event = new CustomEvent("nominatim-select", { detail: result })
     window.dispatchEvent(event)
   }
 
   const selectedCount = campaignState.selectedAddresses.length
+  const showZoomHint = !drawing && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
 
   return (
     <div className="flex flex-col h-[calc(100vh-53px)]">
@@ -108,23 +126,23 @@ export function MapPageClient() {
 
         {/* Draw control */}
         <div className="flex items-center gap-2">
-          {drawMode === "idle" ? (
+          {!drawing ? (
             <button
-              onClick={() => setDrawMode("first-click")}
+              onClick={() => setDrawing(true)}
               className="text-sm font-medium px-3 py-1.5 rounded-lg bg-coral text-white hover:bg-coral-dark transition-colors flex items-center gap-1.5"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M12 3l8 5-3 10H7L4 8z" strokeLinejoin="round" />
               </svg>
               Draw area
             </button>
           ) : (
             <div className="flex items-center gap-2">
               <span className="text-sm text-coral-dark font-medium bg-cream px-3 py-1.5 rounded-lg">
-                {drawMode === "first-click" ? "Click first corner" : "Click opposite corner"}
+                Click to outline your area — click your first point to finish
               </span>
               <button
-                onClick={() => setDrawMode("idle")}
+                onClick={() => setDrawing(false)}
                 className="text-sm text-navy-soft hover:text-navy px-2 py-1.5"
               >
                 Cancel
@@ -139,16 +157,19 @@ export function MapPageClient() {
         {/* Map */}
         <div className="flex-1 relative">
           <PropertyMap
-            addresses={addresses}
+            addresses={pinAddresses}
             selectedIds={selectedIds}
-            drawMode={drawMode}
-            onDrawModeChange={setDrawMode}
-            onAreaDrawn={handleAreaDrawn}
+            onToggle={handleToggle}
+            drawing={drawing}
+            onDrawingChange={setDrawing}
+            onPolygonComplete={handlePolygonComplete}
+            onViewportChange={handleViewportChange}
           />
-          {/* Attribution helper */}
-          <div className="absolute bottom-6 left-2 text-[10px] text-navy-soft/70 pointer-events-none">
-            Tip: draw a rectangle to find addresses
-          </div>
+          {showZoomHint && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 bg-white/95 text-navy-soft text-xs px-3 py-1.5 rounded-full shadow-md pointer-events-none">
+              Search or zoom in to see addresses — or draw an area
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
@@ -163,7 +184,7 @@ export function MapPageClient() {
               )}
             </h2>
             <p className="text-xs text-navy-soft mt-0.5">
-              Draw a rectangle on the map to find addresses
+              Click dots on the map to select addresses, or draw an area
             </p>
             <button
               onClick={handleLoadDemo}

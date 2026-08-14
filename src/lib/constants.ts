@@ -24,6 +24,9 @@ export const MAP_DEFAULTS = {
   CENTER_LAT: 52.5,
   ZOOM: 6,
   MAX_ADDRESSES_PER_DRAW: 50,
+  // Zoom level at which address pins load automatically for the viewport.
+  PIN_ZOOM: 16,
+  VIEWPORT_DEBOUNCE_MS: 500,
 } as const
 
 export function formatPence(pence: number): string {
