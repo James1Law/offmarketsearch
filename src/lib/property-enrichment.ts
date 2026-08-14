@@ -31,7 +31,9 @@ export const CHIMNIE_CORE_FIELDS = [
   "property.attributes.status.epc_property_type",
   "property.attributes.status.epc_built_form",
   "property.attributes.indoor.bedrooms_declared_and_predicted",
+  "property.attributes.indoor.bedrooms_declared_only",
   "property.attributes.indoor.floor_area_declared_and_predicted",
+  "property.attributes.indoor.floor_area_declared_only",
   "property.attributes.outdoor.parking",
   "property.attributes.outdoor.garage",
   "property.bills.tax.council_tax_band_declared_and_predicted",
@@ -93,13 +95,18 @@ export function mapChimnieResponse(
 
   const propensity = SalePropensitySchema.safeParse(sale?.sale_propensity)
 
+  const bedrooms = attrs?.indoor?.bedrooms_declared_and_predicted ?? null
+  const floorArea = attrs?.indoor?.floor_area_declared_and_predicted ?? null
+
   const attributes: EnrichedAttributes = {
     propertyType: mapPropertyType(attrs?.status ?? {}),
-    bedrooms: attrs?.indoor?.bedrooms_declared_and_predicted ?? null,
-    floorAreaSqm:
-      attrs?.indoor?.floor_area_declared_and_predicted != null
-        ? Math.round(attrs.indoor.floor_area_declared_and_predicted)
-        : null,
+    bedrooms,
+    // A value with no declared counterpart came from Chimnie's model.
+    bedroomsEstimated:
+      bedrooms === null ? null : attrs?.indoor?.bedrooms_declared_only == null,
+    floorAreaSqm: floorArea !== null ? Math.round(floorArea) : null,
+    floorAreaEstimated:
+      floorArea === null ? null : attrs?.indoor?.floor_area_declared_only == null,
     parking: attrs?.outdoor?.parking ?? null,
     garage: attrs?.outdoor?.garage ?? null,
     epcRating: normaliseBand(
@@ -259,7 +266,9 @@ export function sampleEnrichment(address: SelectedAddress): EnrichmentResult {
     attributes: {
       propertyType,
       bedrooms,
+      bedroomsEstimated: false,
       floorAreaSqm,
+      floorAreaEstimated: false,
       parking,
       garage,
       epcRating,

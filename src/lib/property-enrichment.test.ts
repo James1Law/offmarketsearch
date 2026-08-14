@@ -27,7 +27,9 @@ const FULL_RESPONSE = {
       },
       indoor: {
         bedrooms_declared_and_predicted: 3,
+        bedrooms_declared_only: 3,
         floor_area_declared_and_predicted: 92.4,
+        // No floor_area_declared_only — the floor area is modelled.
       },
       outdoor: { parking: true, garage: false },
     },
@@ -93,7 +95,9 @@ describe("mapChimnieResponse", () => {
     expect(result.attributes).toMatchObject({
       propertyType: "semi-detached",
       bedrooms: 3,
+      bedroomsEstimated: false,
       floorAreaSqm: 92,
+      floorAreaEstimated: true,
       parking: true,
       garage: false,
       epcRating: "C",
@@ -114,6 +118,7 @@ describe("mapChimnieResponse", () => {
     expect(EnrichmentResultSchema.parse(result)).toBeTruthy()
     expect(result.attributes.propertyType).toBeNull()
     expect(result.attributes.bedrooms).toBeNull()
+    expect(result.attributes.bedroomsEstimated).toBeNull()
     expect(result.attributes.salePropensity).toBeNull()
     expect(result.areaStats).toBeNull()
   })

@@ -17,7 +17,11 @@ export type SalePropensity = z.infer<typeof SalePropensitySchema>
 export const EnrichedAttributesSchema = z.object({
   propertyType: PropertyTypeSchema.nullable(),
   bedrooms: z.number().int().nullable(),
+  /** True when bedrooms is Chimnie's model estimate rather than a declared value. */
+  bedroomsEstimated: z.boolean().nullable(),
   floorAreaSqm: z.number().nullable(),
+  /** True when floor area is Chimnie's model estimate rather than a declared value. */
+  floorAreaEstimated: z.boolean().nullable(),
   parking: z.boolean().nullable(),
   garage: z.boolean().nullable(),
   /** EPC band A–G. */
@@ -86,7 +90,9 @@ export const ChimnieResidentialResponseSchema = z.object({
           indoor: z
             .object({
               bedrooms_declared_and_predicted: z.number().optional(),
+              bedrooms_declared_only: z.number().optional(),
               floor_area_declared_and_predicted: z.number().optional(),
+              floor_area_declared_only: z.number().optional(),
             })
             .optional(),
           outdoor: z

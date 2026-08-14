@@ -32,6 +32,20 @@ export function MobileRefinePageClient() {
   const matchedRows = rows.filter((r) => r.matched)
   const loadingCount = rows.filter((r) => r.loading).length
   const liveCount = rows.filter((r) => r.result?.source === "chimnie").length
+  const excludedForUnknown = filters.includeUnknownData
+    ? 0
+    : rows.filter(
+        (r) =>
+          !r.matched &&
+          r.result !== null &&
+          matchesFilters(r.result.attributes, { ...filters, includeUnknownData: true }),
+      ).length
+  const anyEstimated = rows.some(
+    (r) =>
+      r.matched &&
+      (r.result?.attributes.bedroomsEstimated === true ||
+        r.result?.attributes.floorAreaEstimated === true),
+  )
   const areaStats =
     (rows.find((r) => r.result?.source === "chimnie" && r.result.areaStats) ??
       rows.find((r) => r.result?.areaStats))?.result?.areaStats ?? null
@@ -83,6 +97,17 @@ export function MobileRefinePageClient() {
                 : "Sample data for this prototype"}
           </span>
         </div>
+        {excludedForUnknown > 0 && (
+          <p className="text-xs text-navy-soft bg-white border border-sand rounded-lg px-3 py-2 mb-3">
+            {excludedForUnknown} hidden only because a filtered detail is unknown.{" "}
+            <button
+              onClick={() => setFilters({ ...filters, includeUnknownData: true })}
+              className="text-coral font-medium"
+            >
+              Include anyway
+            </button>
+          </p>
+        )}
         {areaStats && <AreaInsights stats={areaStats} />}
         <div className="flex flex-col gap-2.5 pb-4">
           {rows.map(({ address, result, loading, matched }) => (
@@ -95,6 +120,11 @@ export function MobileRefinePageClient() {
             />
           ))}
         </div>
+        {anyEstimated && (
+          <p className="text-[10px] text-navy-soft/60 mt-1">
+            ~ estimated from Chimnie&apos;s property model where no declared value exists
+          </p>
+        )}
         {liveCount > 0 && <DataAttribution />}
       </section>
 

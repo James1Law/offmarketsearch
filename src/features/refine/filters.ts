@@ -10,6 +10,9 @@ export const DEFAULT_FILTERS: RefineFilters = {
   mustHaveParking: false,
   mustHaveGarage: false,
   minYearsOwned: 0,
+  minEstimatedValueGbp: 0,
+  maxEstimatedValueGbp: 0,
+  includeUnknownData: false,
 }
 
 export const PROPERTY_TYPE_LABELS: Record<PropertyType, string> = {
@@ -45,31 +48,63 @@ export const YEARS_OWNED_OPTIONS = [
   { value: 20, label: "20+ years" },
 ] as const
 
+const VALUE_STEPS = [
+  100_000, 150_000, 200_000, 250_000, 300_000, 400_000, 500_000, 750_000, 1_000_000, 1_500_000,
+  2_000_000,
+]
+
+function formatValueLabel(value: number): string {
+  return value >= 1_000_000 ? `£${value / 1_000_000}m` : `£${value / 1000}k`
+}
+
+export const MIN_VALUE_OPTIONS = [
+  { value: 0, label: "No min" },
+  ...VALUE_STEPS.slice(0, -1).map((v) => ({ value: v, label: formatValueLabel(v) })),
+]
+
+export const MAX_VALUE_OPTIONS = [
+  { value: 0, label: "No max" },
+  ...VALUE_STEPS.map((v) => ({ value: v, label: formatValueLabel(v) })),
+]
+
 /**
- * Strict matching: when a filter is active, a property with unknown data for
- * that field does not match. Cards surface unknowns so this stays legible.
+ * When a filter is active and the property's data for that field is unknown,
+ * the property is excluded — unless `includeUnknownData` is on. A known value
+ * that fails the filter is always excluded.
  */
 export function matchesFilters(attributes: EnrichedAttributes, filters: RefineFilters): boolean {
-  if (filters.propertyTypes.length > 0) {
-    if (attributes.propertyType === null) return false
-    if (!filters.propertyTypes.includes(attributes.propertyType)) return false
+  const allowUnknown = filters.includeUnknownData
+
+  function check<T>(active: boolean, value: T | null, passes: (value: T) => boolean): boolean {
+    if (!active) return true
+    if (value === null) return allowUnknown
+    return passes(value)
   }
-  if (filters.minBedrooms > 0) {
-    if (attributes.bedrooms === null || attributes.bedrooms < filters.minBedrooms) return false
-  }
-  if (filters.minFloorAreaSqm > 0) {
-    if (attributes.floorAreaSqm === null || attributes.floorAreaSqm < filters.minFloorAreaSqm) {
-      return false
-    }
-  }
-  if (filters.mustHaveParking && attributes.parking !== true) return false
-  if (filters.mustHaveGarage && attributes.garage !== true) return false
-  if (filters.minYearsOwned > 0) {
-    if (attributes.yearsOwned === null || attributes.yearsOwned < filters.minYearsOwned) {
-      return false
-    }
-  }
-  return true
+
+  return (
+    check(filters.propertyTypes.length > 0, attributes.propertyType, (t) =>
+      filters.propertyTypes.includes(t),
+    ) &&
+    check(filters.minBedrooms > 0, attributes.bedrooms, (b) => b >= filters.minBedrooms) &&
+    check(
+      filters.minFloorAreaSqm > 0,
+      attributes.floorAreaSqm,
+      (a) => a >= filters.minFloorAreaSqm,
+    ) &&
+    check(filters.mustHaveParking, attributes.parking, (p) => p) &&
+    check(filters.mustHaveGarage, attributes.garage, (g) => g) &&
+    check(filters.minYearsOwned > 0, attributes.yearsOwned, (y) => y >= filters.minYearsOwned) &&
+    check(
+      filters.minEstimatedValueGbp > 0,
+      attributes.estimatedValueGbp,
+      (v) => v >= filters.minEstimatedValueGbp,
+    ) &&
+    check(
+      filters.maxEstimatedValueGbp > 0,
+      attributes.estimatedValueGbp,
+      (v) => v <= filters.maxEstimatedValueGbp,
+    )
+  )
 }
 
 export function isDefaultFilters(filters: RefineFilters): boolean {
@@ -79,7 +114,10 @@ export function isDefaultFilters(filters: RefineFilters): boolean {
     filters.minFloorAreaSqm === 0 &&
     !filters.mustHaveParking &&
     !filters.mustHaveGarage &&
-    filters.minYearsOwned === 0
+    filters.minYearsOwned === 0 &&
+    filters.minEstimatedValueGbp === 0 &&
+    filters.maxEstimatedValueGbp === 0 &&
+    !filters.includeUnknownData
   )
 }
 
@@ -88,14 +126,14 @@ export function isDefaultFilters(filters: RefineFilters): boolean {
  * renamed) over the defaults so every field is present.
  */
 export function normaliseFilters(stored: Partial<RefineFilters> | null): RefineFilters {
-  return {
-    ...DEFAULT_FILTERS,
-    ...(stored ?? {}),
-    propertyTypes: stored?.propertyTypes ?? [],
-    minBedrooms: stored?.minBedrooms ?? 0,
-    minFloorAreaSqm: stored?.minFloorAreaSqm ?? 0,
-    mustHaveParking: stored?.mustHaveParking ?? false,
-    mustHaveGarage: stored?.mustHaveGarage ?? false,
-    minYearsOwned: stored?.minYearsOwned ?? 0,
+  const merged: RefineFilters = { ...DEFAULT_FILTERS }
+  if (!stored) return merged
+  for (const key of Object.keys(DEFAULT_FILTERS) as Array<keyof RefineFilters>) {
+    const value = stored[key]
+    if (value !== undefined) {
+      // Keys come from DEFAULT_FILTERS, so value has the right type for key.
+      merged[key] = value as never
+    }
   }
+  return merged
 }

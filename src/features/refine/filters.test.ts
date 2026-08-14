@@ -5,7 +5,9 @@ import type { EnrichedAttributes } from "@/types/enrichment"
 const FULL: EnrichedAttributes = {
   propertyType: "semi-detached",
   bedrooms: 3,
+  bedroomsEstimated: false,
   floorAreaSqm: 92,
+  floorAreaEstimated: false,
   parking: true,
   garage: false,
   epcRating: "C",
@@ -20,7 +22,9 @@ const FULL: EnrichedAttributes = {
 const UNKNOWN: EnrichedAttributes = {
   propertyType: null,
   bedrooms: null,
+  bedroomsEstimated: null,
   floorAreaSqm: null,
+  floorAreaEstimated: null,
   parking: null,
   garage: null,
   epcRating: null,
@@ -63,6 +67,32 @@ describe("matchesFilters", () => {
     expect(matchesFilters(FULL, { ...DEFAULT_FILTERS, minYearsOwned: 10 })).toBe(true)
     expect(matchesFilters(FULL, { ...DEFAULT_FILTERS, minYearsOwned: 20 })).toBe(false)
     expect(matchesFilters(UNKNOWN, { ...DEFAULT_FILTERS, minYearsOwned: 5 })).toBe(false)
+  })
+
+  it("filters by estimated-value budget range", () => {
+    expect(matchesFilters(FULL, { ...DEFAULT_FILTERS, maxEstimatedValueGbp: 300_000 })).toBe(true)
+    expect(matchesFilters(FULL, { ...DEFAULT_FILTERS, maxEstimatedValueGbp: 250_000 })).toBe(false)
+    expect(matchesFilters(FULL, { ...DEFAULT_FILTERS, minEstimatedValueGbp: 250_000 })).toBe(true)
+    expect(matchesFilters(FULL, { ...DEFAULT_FILTERS, minEstimatedValueGbp: 300_000 })).toBe(false)
+    expect(matchesFilters(UNKNOWN, { ...DEFAULT_FILTERS, maxEstimatedValueGbp: 300_000 })).toBe(
+      false,
+    )
+  })
+
+  it("includeUnknownData keeps unknowns but still rejects failing known values", () => {
+    const lenient = {
+      ...DEFAULT_FILTERS,
+      includeUnknownData: true,
+      propertyTypes: ["detached" as const],
+      minBedrooms: 4,
+      mustHaveParking: true,
+      maxEstimatedValueGbp: 200_000,
+    }
+    // All-unknown attributes pass every active check when unknowns are allowed.
+    expect(matchesFilters(UNKNOWN, lenient)).toBe(true)
+    // Known-but-failing values are still rejected.
+    expect(matchesFilters(FULL, lenient)).toBe(false)
+    expect(matchesFilters({ ...UNKNOWN, parking: false }, lenient)).toBe(false)
   })
 })
 
