@@ -122,8 +122,8 @@ export function describeCriteria(filters: RefineFilters | null): string | null {
   const withParts: string[] = []
   if (filters.minBedrooms > 0) withParts.push(`${filters.minBedrooms}+ bedrooms`)
   if (filters.minFloorAreaSqm > 0) withParts.push(`at least ${filters.minFloorAreaSqm} m²`)
-  if (filters.mustHaveGarden) withParts.push("a garden")
   if (filters.mustHaveParking) withParts.push("off-street parking")
+  if (filters.mustHaveGarage) withParts.push("a garage")
 
   let phrase = typePhrase ? `a ${typePhrase} property` : "a property"
   if (withParts.length > 0) phrase += ` with ${joinList(withParts, "and")}`

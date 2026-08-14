@@ -17,16 +17,6 @@ import { EnrichmentResultSchema } from "./enrichment"
 export { PROPERTY_TYPES, PropertyTypeSchema } from "./property"
 export type { PropertyType } from "./property"
 
-export const PropertyAttributesSchema = z.object({
-  propertyType: PropertyTypeSchema,
-  bedrooms: z.number().int().min(1).max(6),
-  floorAreaSqm: z.number().int().positive(),
-  hasGarden: z.boolean(),
-  hasParking: z.boolean(),
-})
-
-export type PropertyAttributes = z.infer<typeof PropertyAttributesSchema>
-
 export const RefineFiltersSchema = z.object({
   /** Empty array means "any property type". */
   propertyTypes: z.array(PropertyTypeSchema),
@@ -34,8 +24,10 @@ export const RefineFiltersSchema = z.object({
   minBedrooms: z.number().int().min(0),
   /** 0 means "any". */
   minFloorAreaSqm: z.number().int().min(0),
-  mustHaveGarden: z.boolean(),
   mustHaveParking: z.boolean(),
+  mustHaveGarage: z.boolean(),
+  /** Minimum years the current owner has held the property. 0 means "any". */
+  minYearsOwned: z.number().int().min(0),
 })
 
 export type RefineFilters = z.infer<typeof RefineFiltersSchema>
