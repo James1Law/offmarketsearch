@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { PropertyTypeSchema } from "./index"
+import { PropertyTypeSchema } from "./property"
 
 // ---------------------------------------------------------------------------
 // Domain model — what the app stores and renders after enrichment.
@@ -146,3 +146,19 @@ export const ChimnieResidentialResponseSchema = z.object({
 })
 
 export type ChimnieResidentialResponse = z.infer<typeof ChimnieResidentialResponseSchema>
+
+/** Response of GET /info/sandbox-addresses — the free demo properties. */
+export const ChimnieSandboxAddressesSchema = z.object({
+  postcode: z.string(),
+  properties: z.array(
+    z.object({
+      uprn: z.number(),
+      udprn: z.number(),
+      address: z.string(),
+      classification: z.enum(["Residential", "Commercial", "Dual Use", "Parent Shell"]),
+      description: z.string(),
+    }),
+  ),
+})
+
+export type ChimnieSandboxAddresses = z.infer<typeof ChimnieSandboxAddressesSchema>

@@ -11,11 +11,11 @@ export const SelectedAddressSchema = z.object({
 
 export type SelectedAddress = z.infer<typeof SelectedAddressSchema>
 
-export const PROPERTY_TYPES = ["detached", "semi-detached", "terraced", "flat", "bungalow"] as const
+import { PropertyTypeSchema } from "./property"
+import { EnrichmentResultSchema } from "./enrichment"
 
-export const PropertyTypeSchema = z.enum(PROPERTY_TYPES)
-
-export type PropertyType = z.infer<typeof PropertyTypeSchema>
+export { PROPERTY_TYPES, PropertyTypeSchema } from "./property"
+export type { PropertyType } from "./property"
 
 export const PropertyAttributesSchema = z.object({
   propertyType: PropertyTypeSchema,
@@ -89,6 +89,8 @@ export type LetterContent = z.infer<typeof LetterContentSchema>
 export const CampaignStateSchema = z.object({
   selectedAddresses: z.array(SelectedAddressSchema),
   refineFilters: RefineFiltersSchema.nullable(),
+  /** Enrichment results keyed by address id. */
+  enrichment: z.record(z.string(), EnrichmentResultSchema),
   letterContent: LetterContentSchema.nullable(),
 })
 
