@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import maplibregl from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
-import { TerraDraw, TerraDrawPolygonMode } from "terra-draw"
+import { TerraDraw, TerraDrawFreehandMode } from "terra-draw"
 import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter"
 import { env } from "@/lib/env"
 import { MAP_DEFAULTS } from "@/lib/constants"
@@ -142,16 +142,14 @@ export function PropertyMap({
       const draw = new TerraDraw({
         adapter: new TerraDrawMapLibreGLAdapter({ map }),
         modes: [
-          new TerraDrawPolygonMode({
+          // Lasso: press/touch down, drag around the area, release to finish.
+          new TerraDrawFreehandMode({
+            drawInteraction: "click-drag",
             styles: {
               fillColor: "#f4795b",
               fillOpacity: 0.12,
               outlineColor: "#f4795b",
               outlineWidth: 2,
-              closingPointColor: "#f4795b",
-              closingPointWidth: 7,
-              closingPointOutlineColor: "#ffffff",
-              closingPointOutlineWidth: 2,
             },
           }),
         ],
@@ -237,8 +235,8 @@ export function PropertyMap({
     if (!draw || !mapReady) return
     if (drawing) {
       draw.clear()
-      draw.setMode("polygon")
-    } else if (draw.getMode() === "polygon") {
+      draw.setMode("freehand")
+    } else if (draw.getMode() === "freehand") {
       // Cancelled mid-draw: drop the partial sketch. (A completed polygon
       // already switched to static in the finish handler, so it's kept.)
       draw.setMode("static")

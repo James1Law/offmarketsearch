@@ -186,7 +186,7 @@ export function MobileMapPageClient() {
 
         {drawing && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-max max-w-[85%] bg-coral text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md pointer-events-none text-center">
-            Tap to outline your area — tap your first point to finish
+            Draw around the homes you want — lift your finger to finish
           </div>
         )}
 
