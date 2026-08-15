@@ -10,8 +10,6 @@ interface LetterPreviewProps {
   refineFilters: RefineFilters | null
 }
 
-const SERIF = { fontFamily: "Georgia, 'Times New Roman', serif" }
-
 export function LetterPreview({ content, recipient, refineFilters }: LetterPreviewProps) {
   const letter = renderLetter(content, recipient, refineFilters)
 
@@ -32,15 +30,15 @@ export function LetterPreview({ content, recipient, refineFilters }: LetterPrevi
         <span className="text-xs font-semibold text-navy-soft uppercase tracking-wider">
           Letter preview
         </span>
-        <span className="text-xs text-navy-soft/70">A5 · Printed & posted by Offline.homes</span>
+        <span className="text-xs text-navy-soft/70">A4 · Printed & posted by Offline.homes</span>
       </div>
 
-      {/* Letter body */}
+      {/* Letter page — A4 proportions (210 × 297); long content scrolls within the page */}
       {hasAnyInput ? (
-        <div className="px-6 sm:px-8 py-6 text-sm text-slate-800 leading-relaxed" style={SERIF}>
+        <div className="aspect-[210/297] overflow-y-auto flex flex-col px-6 sm:px-10 py-7 sm:py-9 text-[13px] sm:text-sm text-navy leading-relaxed">
           {/* Letterhead: brand top left; sender address, contact details and date top right */}
           <div className="flex justify-between items-start gap-4">
-            <Logo markClassName="w-8 h-8" textClassName="text-sm" />
+            <Logo markClassName="w-6 h-6" textClassName="text-base" />
             <div className="text-right">
               {letter.senderLines.map((line, i) => (
                 <div key={i}>{line}</div>
@@ -67,14 +65,16 @@ export function LetterPreview({ content, recipient, refineFilters }: LetterPrevi
           <p className="mt-4">{letter.signOff}</p>
           <p className="mt-5">{letter.signature}</p>
 
-          {/* Offline.homes outro + small print */}
-          <div className="mt-8 pt-4 border-t border-sand font-sans">
-            <p className="text-xs text-navy-soft">{letter.outro}</p>
-            <p className="text-[10px] text-navy-soft/70 mt-2">{letter.disclaimer}</p>
+          {/* Offline.homes outro + small print — pinned to the foot of the page */}
+          <div className="mt-auto pt-8">
+            <div className="pt-4 border-t border-sand">
+              <p className="text-xs text-navy-soft">{letter.outro}</p>
+              <p className="text-[10px] text-navy-soft/70 mt-2">{letter.disclaimer}</p>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="px-8 py-6 text-sm min-h-[420px]" style={SERIF}>
+        <div className="aspect-[210/297] px-6 sm:px-10 py-7 sm:py-9 text-sm">
           <span className="text-navy-soft/70">
             Fill in your details on the left to preview your letter.
           </span>
