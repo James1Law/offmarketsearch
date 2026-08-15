@@ -178,7 +178,7 @@ supabase migration new <name>   # create a new migration
 ## Current app structure (Phase 1 — demo, no auth/payments yet)
 
 - `/` — landing page
-- `/map` — MapLibre map with satellite toggle; addresses load for the viewport past zoom 16 (tap dots to select) or via a Terra Draw freeform polygon; Overpass/Nominatim address fetch, address list
+- `/map` — MapLibre map with satellite toggle; addresses load for the viewport past zoom 16 (tap dots to select) or via a Terra Draw freehand lasso (drag to outline, release to finish); Overpass/Nominatim address fetch, address list
 - `/refine` — filter selected addresses by property type, size, attributes, years owned. Real data via the Chimnie Data API (`lib/property-enrichment.ts`; set `CHIMNIE_API_KEY`), with the free sandbox postcode CH1 1MN demoable keyless ("Try demo addresses" on the map page) and a deterministic sample-data fallback otherwise. Never call Chimnie with a blank `fields` param. Lookups deliberately include one Premium-tier field (garden), billing 15p each — any other tier increase must be a deliberate decision (enforced by the tier allowlist test).
 - `/letter` — template editor + HTML letter preview
 - `/basket` — address list, pricing, mock checkout CTA

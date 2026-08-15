@@ -139,7 +139,7 @@ export function MapPageClient() {
           ) : (
             <div className="flex items-center gap-2">
               <span className="text-sm text-coral-dark font-medium bg-cream px-3 py-1.5 rounded-lg">
-                Click to outline your area — click your first point to finish
+                Click and drag around the homes you want — release to finish
               </span>
               <button
                 onClick={() => setDrawing(false)}
