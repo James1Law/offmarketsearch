@@ -31,14 +31,18 @@ export default function HomePage() {
           href="/map"
           className="inline-flex items-center gap-2 bg-coral hover:bg-coral-dark text-white font-semibold px-8 py-3.5 rounded-lg text-base transition-colors"
         >
-          Find your dream street →
+          Get started →
         </Link>
       </section>
 
       {/* How it works */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-center text-navy mb-12">How it works</h2>
+          <h2 className="text-2xl font-bold text-center text-navy mb-3">How it works</h2>
+          <p className="text-center text-navy-soft mb-12 max-w-xl mx-auto">
+            Looking for your perfect property? Rightmove lists 2% of homes. We search the
+            other 98%.
+          </p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {HOW_STEPS.map((step) => (
               <div key={step.number} className="text-center">
