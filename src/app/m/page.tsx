@@ -53,13 +53,17 @@ export default function MobileHomePage() {
           href="/m/map"
           className="inline-flex items-center justify-center w-full bg-coral active:bg-coral-dark text-white font-semibold py-3.5 rounded-xl text-base"
         >
-          Find your dream street →
+          Get started →
         </Link>
       </section>
 
       {/* How it works */}
       <section className="px-5 py-10 bg-white">
-        <h2 className="text-base font-bold text-navy mb-5">How it works</h2>
+        <h2 className="text-base font-bold text-navy mb-1">How it works</h2>
+        <p className="text-sm text-navy-soft mb-5">
+          Looking for your perfect property? Rightmove lists 2% of homes. We search the other
+          98%.
+        </p>
         <ol className="flex flex-col gap-4">
           {HOW_STEPS.map((step) => (
             <li key={step.number} className="flex items-start gap-3">
