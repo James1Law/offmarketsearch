@@ -1,5 +1,5 @@
 import type { SelectedAddress } from "@/types"
-import type { EnrichedAttributes, SalePropensity } from "@/types/enrichment"
+import type { EnrichedAttributes, EnrichmentSource, SalePropensity } from "@/types/enrichment"
 import { PROPERTY_TYPE_LABELS } from "../filters"
 
 interface PropertyCardProps {
@@ -7,6 +7,8 @@ interface PropertyCardProps {
   attributes: EnrichedAttributes | null
   matched: boolean
   loading: boolean
+  /** Null while loading. Sample-sourced cards are badged so nobody mistakes them for real. */
+  source: EnrichmentSource | null
 }
 
 const GBP = new Intl.NumberFormat("en-GB", {
@@ -18,7 +20,13 @@ const GBP = new Intl.NumberFormat("en-GB", {
 // Bands predicting a sale within the next couple of years get a callout.
 const HOT_PROPENSITY: ReadonlySet<SalePropensity> = new Set(["<1y", "1-2y"])
 
-export function PropertyCard({ address, attributes, matched, loading }: PropertyCardProps) {
+export function PropertyCard({
+  address,
+  attributes,
+  matched,
+  loading,
+  source,
+}: PropertyCardProps) {
   return (
     <div
       className={`rounded-xl border px-4 py-3 transition-opacity ${
@@ -32,6 +40,14 @@ export function PropertyCard({ address, attributes, matched, loading }: Property
         {!matched && (
           <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-navy-soft/70 bg-sand rounded-full px-2 py-0.5">
             Filtered out
+          </span>
+        )}
+        {matched && source === "sample" && (
+          <span
+            title="We have no real data for this property yet, so these details are made up."
+            className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5"
+          >
+            Sample
           </span>
         )}
         {matched && attributes?.salePropensity && HOT_PROPENSITY.has(attributes.salePropensity) && (
