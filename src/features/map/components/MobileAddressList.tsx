@@ -11,6 +11,8 @@ interface MobileAddressListProps {
   error: string | null
   /** True once a search has run, so "none here" reads differently to "not looked yet". */
   searched: boolean
+  /** Matches before the campaign cap trimmed them, so truncation can be owned up to. */
+  totalFound: number
   onLoadDemo?: (() => void) | undefined
 }
 
@@ -21,6 +23,7 @@ export function MobileAddressList({
   loading,
   error,
   searched,
+  totalFound,
   onLoadDemo,
 }: MobileAddressListProps) {
   if (loading) {
@@ -65,6 +68,12 @@ export function MobileAddressList({
 
   return (
     <>
+      {totalFound > addresses.length && (
+        <p className="text-xs text-navy-soft bg-cream px-4 py-2 border-b border-sand leading-relaxed">
+          Showing the {addresses.length} closest to the middle of your circle, out of {totalFound}{" "}
+          found. Shrink the radius to be more selective.
+        </p>
+      )}
       {atCap && (
         <p className="text-xs text-amber-700 bg-amber-50 px-4 py-2 border-y border-amber-100">
           Maximum {LIMITS.MAX_LETTERS_PER_CAMPAIGN} letters per campaign.

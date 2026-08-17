@@ -110,6 +110,30 @@ export const NominatimResultSchema = z.object({
 
 export type NominatimResult = z.infer<typeof NominatimResultSchema>
 
+export const BBoxSchema = z.object({
+  south: z.number().min(-90).max(90),
+  west: z.number().min(-180).max(180),
+  north: z.number().min(-90).max(90),
+  east: z.number().min(-180).max(180),
+})
+
+export type BBox = z.infer<typeof BBoxSchema>
+
+/**
+ * A polygon ring as [lng, lat] tuples. Four is the minimum that can enclose an
+ * area once the closing point is counted.
+ */
+export const PolygonRingSchema = z.array(z.tuple([z.number(), z.number()])).min(4)
+
+export type PolygonRing = z.infer<typeof PolygonRingSchema>
+
+/** Addresses found in an area, plus how many there were before truncation. */
+export interface AreaSearchResult {
+  addresses: SelectedAddress[]
+  /** Total matches before the campaign cap trimmed them. */
+  totalFound: number
+}
+
 export const OverpassElementSchema = z.object({
   type: z.string(),
   id: z.number(),

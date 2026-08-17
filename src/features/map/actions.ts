@@ -1,8 +1,27 @@
 "use server"
 
 import { ChimnieSandboxAddressesSchema } from "@/types/enrichment"
-import type { SelectedAddress } from "@/types"
+import { BBoxSchema, PolygonRingSchema } from "@/types"
+import type { AreaSearchResult, SelectedAddress } from "@/types"
+import { fetchAddressesInBBox, fetchAddressesInPolygon } from "@/lib/geocoding/overpass"
 import { env } from "@/lib/env"
+
+// ---------------------------------------------------------------------------
+// Address lookup. These wrap Overpass because the browser cannot call it
+// directly — overpass-api.de returns no Access-Control-Allow-Origin header, so
+// every client-side attempt failed CORS. Inputs are validated here because a
+// server action is a public HTTP endpoint whatever the call site looks like.
+// ---------------------------------------------------------------------------
+
+/** Addresses inside a drawn or placed area. */
+export async function findAddressesInArea(ring: unknown): Promise<AreaSearchResult> {
+  return fetchAddressesInPolygon(PolygonRingSchema.parse(ring))
+}
+
+/** Addresses inside the current viewport, once zoomed in far enough. */
+export async function findAddressesInViewport(bbox: unknown): Promise<AreaSearchResult> {
+  return fetchAddressesInBBox(BBoxSchema.parse(bbox))
+}
 
 // Chester city centre — the sandbox postcode CH1 1MN is fictional, so demo
 // markers are spread around a plausible location.

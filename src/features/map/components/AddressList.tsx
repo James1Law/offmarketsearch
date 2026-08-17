@@ -11,6 +11,8 @@ interface AddressListProps {
   error: string | null
   /** True once a search has run, so "none here" reads differently to "not looked yet". */
   searched: boolean
+  /** Matches before the campaign cap trimmed them, so truncation can be owned up to. */
+  totalFound: number
   onLoadDemo?: (() => void) | undefined
 }
 
@@ -21,6 +23,7 @@ export function AddressList({
   loading,
   error,
   searched,
+  totalFound,
   onLoadDemo,
 }: AddressListProps) {
   if (loading) {
@@ -88,6 +91,13 @@ export function AddressList({
           {allSelected ? "Deselect all" : "Select all"}
         </button>
       </div>
+
+      {totalFound > addresses.length && (
+        <p className="text-xs text-navy-soft bg-cream px-3 py-2 border-b border-sand leading-relaxed">
+          Showing the {addresses.length} homes closest to the middle of your circle, out of{" "}
+          {totalFound} found. Shrink the radius to be more selective.
+        </p>
+      )}
 
       {atCap && !allSelected && (
         <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2">

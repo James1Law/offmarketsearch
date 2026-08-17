@@ -3,52 +3,29 @@
 import { useEffect, useRef, useState } from "react"
 import maplibregl from "maplibre-gl"
 import "maplibre-gl/dist/maplibre-gl.css"
-import { TerraDraw, TerraDrawFreehandMode } from "terra-draw"
-import { TerraDrawMapLibreGLAdapter } from "terra-draw-maplibre-gl-adapter"
 import { env } from "@/lib/env"
 import { MAP_DEFAULTS } from "@/lib/constants"
-import type { SelectedAddress, NominatimResult } from "@/types"
-import type { PolygonRing } from "@/lib/geocoding/overpass"
-import type { BBox } from "../hooks/useOverpassAddresses"
-import { circleAreaToRing, type AreaMode, type CircleArea } from "../area-select"
+import type { BBox, NominatimResult, SelectedAddress } from "@/types"
+import { circleAreaToRing, type CircleArea } from "../area-select"
 
 const CIRCLE_SOURCE = "area-circle"
-
-interface FitPadding {
-  top: number
-  bottom: number
-  left: number
-  right: number
-}
 
 interface PropertyMapProps {
   addresses: SelectedAddress[]
   selectedIds: Set<string>
   /** Tapping/clicking a pin toggles its selection on all devices. */
   onToggle: (address: SelectedAddress) => void
-  /** Which area tool is active. Circle mode places its centre on map tap. */
-  mode: AreaMode
   /** The circle being placed, or null before the user has tapped anywhere. */
   circle: CircleArea | null
-  /** Called with the tapped point when in circle mode. */
+  /** Called with the tapped point, which becomes the circle's centre. */
   onCircleCenterChange: (center: [lng: number, lat: number]) => void
-  /** Whether lasso drawing is active. Only meaningful when mode is "lasso". */
-  drawing: boolean
-  /** Called when drawing ends from within the map (polygon completed). */
-  onDrawingChange: (drawing: boolean) => void
-  /** Called with the completed polygon ring as [lng, lat] tuples. */
-  onPolygonComplete: (ring: PolygonRing) => void
   /** Debounced notification of the current viewport after the user pans/zooms. */
   onViewportChange?: (bbox: BBox, zoom: number) => void
   /** Larger pins for touch devices. Default false. */
   touchTargets?: boolean
   /** Hide the +/− navigation control (mobile uses pinch gestures). Default true. */
   showNavControl?: boolean
-  /** Extra padding for the fit-to-area zoom, e.g. to keep results above a bottom sheet. */
-  fitPadding?: FitPadding
 }
-
-const DEFAULT_FIT_PADDING: FitPadding = { top: 40, bottom: 40, left: 40, right: 40 }
 
 function buildMapStyle(): string | object {
   if (env.NEXT_PUBLIC_MAPTILER_API_KEY) {
@@ -100,43 +77,27 @@ export function PropertyMap({
   addresses,
   selectedIds,
   onToggle,
-  mode,
   circle,
   onCircleCenterChange,
-  drawing,
-  onDrawingChange,
-  onPolygonComplete,
   onViewportChange,
   touchTargets = false,
   showNavControl = true,
-  fitPadding = DEFAULT_FIT_PADDING,
 }: PropertyMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
-  const drawRef = useRef<TerraDraw | null>(null)
   const markersRef = useRef<maplibregl.Marker[]>([])
   const viewportTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [mapReady, setMapReady] = useState(false)
   const [satellite, setSatellite] = useState(false)
 
   // Stable refs so map event handlers always call the latest callbacks
-  const drawingRef = useRef(drawing)
-  const modeRef = useRef(mode)
   const onCircleCenterChangeRef = useRef(onCircleCenterChange)
   const onToggleRef = useRef(onToggle)
-  const onDrawingChangeRef = useRef(onDrawingChange)
-  const onPolygonCompleteRef = useRef(onPolygonComplete)
   const onViewportChangeRef = useRef(onViewportChange)
-  const fitPaddingRef = useRef(fitPadding)
 
-  useEffect(() => { drawingRef.current = drawing })
-  useEffect(() => { modeRef.current = mode })
   useEffect(() => { onCircleCenterChangeRef.current = onCircleCenterChange })
   useEffect(() => { onToggleRef.current = onToggle })
-  useEffect(() => { onDrawingChangeRef.current = onDrawingChange })
-  useEffect(() => { onPolygonCompleteRef.current = onPolygonComplete })
   useEffect(() => { onViewportChangeRef.current = onViewportChange })
-  useEffect(() => { fitPaddingRef.current = fitPadding })
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -173,65 +134,14 @@ export function PropertyMap({
         paint: { "line-color": "#f4795b", "line-width": 2 },
       })
 
-      const draw = new TerraDraw({
-        adapter: new TerraDrawMapLibreGLAdapter({ map }),
-        modes: [
-          // Lasso: press/touch down, drag around the area, release to finish.
-          new TerraDrawFreehandMode({
-            drawInteraction: "click-drag",
-            styles: {
-              fillColor: "#f4795b",
-              fillOpacity: 0.12,
-              outlineColor: "#f4795b",
-              outlineWidth: 2,
-            },
-          }),
-        ],
-      })
-      draw.start()
-      draw.setMode("static")
-      draw.on("finish", (id, context) => {
-        if (context.action !== "draw") return
-        const feature = draw.getSnapshotFeature(id)
-        if (!feature || feature.geometry.type !== "Polygon") return
-        const positions = feature.geometry.coordinates[0] ?? []
-        const ring: PolygonRing = positions
-          .map((p): [number, number] | null => {
-            const lng = p[0]
-            const lat = p[1]
-            return lng !== undefined && lat !== undefined ? [lng, lat] : null
-          })
-          .filter((p): p is [number, number] => p !== null)
-        if (ring.length < 4) return
-        // Leave drawing mode but keep the finished polygon rendered.
-        draw.setMode("static")
-        const lngs = ring.map(([lng]) => lng)
-        const lats = ring.map(([, lat]) => lat)
-        map.fitBounds(
-          [
-            [Math.min(...lngs), Math.min(...lats)],
-            [Math.max(...lngs), Math.max(...lats)],
-          ],
-          { padding: fitPaddingRef.current, maxZoom: 17 },
-          // Flag so the moveend handler doesn't fire a viewport fetch that
-          // would overwrite the polygon results.
-          { programmatic: true },
-        )
-        onDrawingChangeRef.current(false)
-        onPolygonCompleteRef.current(ring)
-      })
-      drawRef.current = draw
       setMapReady(true)
     })
 
     map.on("click", (e) => {
-      if (modeRef.current !== "circle") return
       onCircleCenterChangeRef.current([e.lngLat.lng, e.lngLat.lat])
     })
 
-    map.on("moveend", (e) => {
-      if ((e as { programmatic?: boolean }).programmatic) return
-      if (drawingRef.current) return
+    map.on("moveend", () => {
       if (viewportTimerRef.current) clearTimeout(viewportTimerRef.current)
       viewportTimerRef.current = setTimeout(() => {
         const bounds = map.getBounds()
@@ -259,8 +169,6 @@ export function PropertyMap({
     return () => {
       window.removeEventListener("nominatim-select", handleSearchSelect)
       if (viewportTimerRef.current) clearTimeout(viewportTimerRef.current)
-      drawRef.current?.stop()
-      drawRef.current = null
       map.remove()
       mapRef.current = null
       setMapReady(false)
@@ -268,29 +176,14 @@ export function PropertyMap({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Enter/leave polygon drawing mode
-  useEffect(() => {
-    const draw = drawRef.current
-    if (!draw || !mapReady) return
-    if (drawing) {
-      draw.clear()
-      draw.setMode("freehand")
-    } else if (draw.getMode() === "freehand") {
-      // Cancelled mid-draw: drop the partial sketch. (A completed polygon
-      // already switched to static in the finish handler, so it's kept.)
-      draw.setMode("static")
-      draw.clear()
-    }
-  }, [drawing, mapReady])
-
-  // Draw the circle, and clear it when the user switches to the lasso
+  // Draw the circle
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
     const source = map.getSource<maplibregl.GeoJSONSource>(CIRCLE_SOURCE)
     if (!source) return
 
-    if (mode !== "circle" || !circle) {
+    if (!circle) {
       source.setData({ type: "FeatureCollection", features: [] })
       return
     }
@@ -299,14 +192,14 @@ export function PropertyMap({
       properties: {},
       geometry: { type: "Polygon", coordinates: [circleAreaToRing(circle)] },
     })
-  }, [circle, mode, mapReady])
+  }, [circle, mapReady])
 
-  // Crosshair while placing a circle, so the map reads as "tap to put it here"
+  // Crosshair everywhere, so the map always reads as "tap to search here"
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
-    map.getCanvas().style.cursor = mode === "circle" ? "crosshair" : ""
-  }, [mode, mapReady])
+    map.getCanvas().style.cursor = "crosshair"
+  }, [mapReady])
 
   // Toggle satellite imagery
   useEffect(() => {
@@ -327,8 +220,9 @@ export function PropertyMap({
         selectedIds.has(addr.id) ? "bg-coral" : "bg-navy-soft"
       }`
       el.title = addr.displayAddress
-      el.addEventListener("click", () => {
-        if (drawingRef.current) return
+      el.addEventListener("click", (event) => {
+        // Don't let the map's own click handler also move the circle.
+        event.stopPropagation()
         onToggleRef.current(addr)
       })
       return new maplibregl.Marker({ element: el }).setLngLat([addr.lng, addr.lat]).addTo(map)

@@ -7,14 +7,13 @@ import { AddressList } from "./AddressList"
 import { AreaSelectControl } from "./AreaSelectControl"
 import { SavedCampaignNotice } from "./SavedCampaignNotice"
 import { ClearListButton } from "./ClearListButton"
-import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
+import { useOverpassAddresses } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
 import { loadSandboxAddresses } from "../actions"
 import { useCampaignStore, campaignStore, isCampaignStale } from "@/lib/campaign-store"
 import { MAP_DEFAULTS, LIMITS, AREA_SELECT } from "@/lib/constants"
-import { circleAreaToRing, type AreaMode, type CircleArea } from "../area-select"
-import type { SelectedAddress } from "@/types"
-import type { PolygonRing } from "@/lib/geocoding/overpass"
+import { circleAreaToRing, type CircleArea } from "../area-select"
+import type { BBox, SelectedAddress } from "@/types"
 
 const PropertyMap = dynamic(
   () => import("./PropertyMap").then((m) => m.PropertyMap),
@@ -24,12 +23,10 @@ const PropertyMap = dynamic(
 export function MapPageClient() {
   const router = useRouter()
   const campaignState = useCampaignStore()
-  const { addresses, loading, error, searched, fetchPolygon, fetchViewport, clear } =
+  const { addresses, totalFound, loading, error, searched, fetchPolygon, fetchViewport, clear } =
     useOverpassAddresses()
   const { results: searchResults, loading: searchLoading, search, clear: clearSearch } = useNominatimSearch()
-  const [mode, setMode] = useState<AreaMode>("circle")
   const [circle, setCircle] = useState<CircleArea | null>(null)
-  const [drawing, setDrawing] = useState(false)
   const [zoom, setZoom] = useState<number>(MAP_DEFAULTS.ZOOM)
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchResults, setShowSearchResults] = useState(false)
@@ -65,17 +62,6 @@ export function MapPageClient() {
     const adding = !selectedIds.has(address.id)
     if (adding && selectedIds.size >= LIMITS.MAX_LETTERS_PER_CAMPAIGN) return
     campaignStore.toggleAddress(address)
-  }
-
-  function handlePolygonComplete(ring: PolygonRing) {
-    clear()
-    fetchPolygon(ring)
-  }
-
-  function handleModeChange(next: AreaMode) {
-    setMode(next)
-    setDrawing(false)
-    if (next === "lasso") setCircle(null)
   }
 
   function handleCircleCenterChange(center: [lng: number, lat: number]) {
@@ -119,16 +105,16 @@ export function MapPageClient() {
 
   const selectedCount = campaignState.selectedAddresses.length
   const showSavedNotice = isCampaignStale(campaignState)
-  const showZoomHint = !drawing && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
+  const showZoomHint = !circle && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
 
   return (
     <div className="flex flex-col h-[calc(100vh-53px)]">
       {showSavedNotice && <SavedCampaignNotice count={selectedCount} />}
 
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-sand shrink-0">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 px-4 py-2.5 bg-white border-b border-sand shrink-0">
         {/* Location search */}
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 basis-full sm:basis-auto sm:max-w-sm min-w-0">
           <input
             type="text"
             placeholder="Search area, e.g. Hampstead, London"
@@ -161,31 +147,23 @@ export function MapPageClient() {
 
         {/* Area selection */}
         <AreaSelectControl
-          mode={mode}
-          onModeChange={handleModeChange}
           circle={circle}
           onRadiusChange={handleRadiusChange}
           onSearchCircle={handleSearchCircle}
-          drawing={drawing}
-          onDrawingChange={setDrawing}
           loading={loading}
         />
       </div>
 
       {/* Main content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
         {/* Map */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-h-64">
           <PropertyMap
             addresses={pinAddresses}
             selectedIds={selectedIds}
             onToggle={handleToggle}
-            mode={mode}
             circle={circle}
             onCircleCenterChange={handleCircleCenterChange}
-            drawing={drawing}
-            onDrawingChange={setDrawing}
-            onPolygonComplete={handlePolygonComplete}
             onViewportChange={handleViewportChange}
           />
           {showZoomHint && (
@@ -196,7 +174,7 @@ export function MapPageClient() {
         </div>
 
         {/* Sidebar */}
-        <aside className="w-72 shrink-0 bg-white border-l border-sand flex flex-col overflow-hidden">
+        <aside className="w-full lg:w-72 shrink-0 bg-white border-t lg:border-t-0 lg:border-l border-sand flex flex-col overflow-hidden max-h-72 lg:max-h-none">
           <div className="px-3 py-3 border-b border-sand">
             <div className="flex items-center justify-between gap-2">
               <h2 className="text-sm font-semibold text-navy">
@@ -227,6 +205,7 @@ export function MapPageClient() {
             loading={loading}
             error={error}
             searched={searched}
+            totalFound={totalFound}
             onLoadDemo={handleLoadDemo}
           />
           <div className="p-3 border-t border-sand mt-auto">

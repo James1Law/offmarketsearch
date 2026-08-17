@@ -1,4 +1,4 @@
-import type { PolygonRing } from "@/lib/geocoding/overpass"
+import type { PolygonRing } from "@/types"
 
 /** WGS-84 mean earth radius in metres. */
 const EARTH_RADIUS_M = 6371008.8

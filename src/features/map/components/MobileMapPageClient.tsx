@@ -8,27 +8,23 @@ import { MobileAddressList } from "./MobileAddressList"
 import { AreaSelectControl } from "./AreaSelectControl"
 import { SavedCampaignNotice } from "./SavedCampaignNotice"
 import { ClearListButton } from "./ClearListButton"
-import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
+import { useOverpassAddresses } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
 import { loadSandboxAddresses } from "../actions"
 import { useCampaignStore, campaignStore, isCampaignStale } from "@/lib/campaign-store"
 import { MAP_DEFAULTS, LIMITS, AREA_SELECT } from "@/lib/constants"
-import { circleAreaToRing, type AreaMode, type CircleArea } from "../area-select"
-import type { SelectedAddress } from "@/types"
-import type { PolygonRing } from "@/lib/geocoding/overpass"
+import { circleAreaToRing, type CircleArea } from "../area-select"
+import type { BBox, SelectedAddress } from "@/types"
 
 const PropertyMap = dynamic(
   () => import("./PropertyMap").then((m) => m.PropertyMap),
   { ssr: false, loading: () => <div className="w-full h-full bg-sand animate-pulse" /> },
 )
 
-// Keep drawn results visible above the collapsed bottom sheet when fitting the map.
-const MOBILE_FIT_PADDING = { top: 40, bottom: 240, left: 40, right: 40 }
-
 export function MobileMapPageClient() {
   const router = useRouter()
   const campaignState = useCampaignStore()
-  const { addresses, loading, error, searched, fetchPolygon, fetchViewport, clear } =
+  const { addresses, totalFound, loading, error, searched, fetchPolygon, fetchViewport, clear } =
     useOverpassAddresses()
   const {
     results: searchResults,
@@ -36,9 +32,7 @@ export function MobileMapPageClient() {
     search,
     clear: clearSearch,
   } = useNominatimSearch()
-  const [mode, setMode] = useState<AreaMode>("circle")
   const [circle, setCircle] = useState<CircleArea | null>(null)
-  const [drawing, setDrawing] = useState(false)
   const [zoom, setZoom] = useState<number>(MAP_DEFAULTS.ZOOM)
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchResults, setShowSearchResults] = useState(false)
@@ -75,25 +69,6 @@ export function MobileMapPageClient() {
     const adding = !selectedIds.has(address.id)
     if (adding && selectedIds.size >= LIMITS.MAX_LETTERS_PER_CAMPAIGN) return
     campaignStore.toggleAddress(address)
-  }
-
-  function startDrawing() {
-    // Collapse the sheet so the map has maximum room while drawing.
-    setSnapRequest({ index: 0, token: Date.now() })
-    setDrawing(true)
-  }
-
-  async function handlePolygonComplete(ring: PolygonRing) {
-    clear()
-    await fetchPolygon(ring)
-    // Surface the results (or the error/empty message): expand the sheet to mid height.
-    setSnapRequest({ index: 1, token: Date.now() })
-  }
-
-  function handleModeChange(next: AreaMode) {
-    setMode(next)
-    setDrawing(false)
-    if (next === "lasso") setCircle(null)
   }
 
   function handleCircleCenterChange(center: [lng: number, lat: number]) {
@@ -149,7 +124,7 @@ export function MobileMapPageClient() {
 
   const selectedCount = campaignState.selectedAddresses.length
   const showSavedNotice = isCampaignStale(campaignState)
-  const showZoomHint = !drawing && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
+  const showZoomHint = !circle && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -191,13 +166,9 @@ export function MobileMapPageClient() {
 
       <div className="px-3 pb-2 bg-white border-b border-sand shrink-0">
         <AreaSelectControl
-          mode={mode}
-          onModeChange={handleModeChange}
           circle={circle}
           onRadiusChange={handleRadiusChange}
           onSearchCircle={handleSearchCircle}
-          drawing={drawing}
-          onDrawingChange={(next) => (next ? startDrawing() : setDrawing(false))}
           loading={loading}
           compact
         />
@@ -210,24 +181,13 @@ export function MobileMapPageClient() {
             addresses={pinAddresses}
             selectedIds={selectedIds}
             onToggle={handleToggle}
-            mode={mode}
             circle={circle}
             onCircleCenterChange={handleCircleCenterChange}
-            drawing={drawing}
-            onDrawingChange={setDrawing}
-            onPolygonComplete={handlePolygonComplete}
             onViewportChange={handleViewportChange}
             touchTargets
             showNavControl={false}
-            fitPadding={MOBILE_FIT_PADDING}
           />
         </div>
-
-        {drawing && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-max max-w-[85%] bg-coral text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md pointer-events-none text-center">
-            Draw around the homes you want — lift your finger to finish
-          </div>
-        )}
 
         {showZoomHint && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-max max-w-[85%] bg-white/95 text-navy-soft text-xs px-3 py-1.5 rounded-full shadow-md pointer-events-none text-center">
@@ -302,6 +262,7 @@ export function MobileMapPageClient() {
             loading={loading}
             error={error}
             searched={searched}
+            totalFound={totalFound}
             onLoadDemo={handleLoadDemo}
           />
         </BottomSheet>

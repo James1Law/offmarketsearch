@@ -35,12 +35,14 @@ export const MAP_DEFAULTS = {
 export const CAMPAIGN_STALE_MS = 24 * 60 * 60 * 1000
 
 export const AREA_SELECT = {
-  DEFAULT_RADIUS_M: 250,
-  MIN_RADIUS_M: 100,
-  // Caps how much of the map one query can cover, which keeps Overpass
-  // responsive and pairs with the 50-letter campaign cap.
-  MAX_RADIUS_M: 1000,
-  RADIUS_STEP_M: 50,
+  DEFAULT_RADIUS_M: 1000,
+  MIN_RADIUS_M: 250,
+  // A 5km circle over a city matches thousands of homes, far more than the
+  // 50-letter campaign cap. That is fine because results are ranked by distance
+  // from the centre before the cap applies, so a wide radius means "the closest
+  // 50 to where I tapped" rather than an arbitrary 50.
+  MAX_RADIUS_M: 5000,
+  RADIUS_STEP_M: 250,
   // Vertices used to approximate the circle. 64 looks smooth at every zoom
   // the map allows without bloating the Overpass query.
   CIRCLE_STEPS: 64,

@@ -1,22 +1,12 @@
 "use client"
 
 import { useState, useCallback, useRef } from "react"
-import type { SelectedAddress } from "@/types"
-import {
-  fetchAddressesInBBox,
-  fetchAddressesInPolygon,
-  type PolygonRing,
-} from "@/lib/geocoding/overpass"
-
-export interface BBox {
-  south: number
-  west: number
-  north: number
-  east: number
-}
+import type { BBox, PolygonRing, SelectedAddress } from "@/types"
+import { findAddressesInArea, findAddressesInViewport } from "../actions"
 
 export function useOverpassAddresses() {
   const [addresses, setAddresses] = useState<SelectedAddress[]>([])
+  const [totalFound, setTotalFound] = useState(0)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // "No addresses here" and "you haven't looked yet" are both an empty list,
@@ -30,15 +20,17 @@ export function useOverpassAddresses() {
     setLoading(true)
     setError(null)
     try {
-      const found = await fetchAddressesInPolygon(ring)
+      const result = await findAddressesInArea(ring)
       if (requestId !== requestIdRef.current) return
-      setAddresses(found)
+      setAddresses(result.addresses)
+      setTotalFound(result.totalFound)
       setSearched(true)
     } catch {
       if (requestId !== requestIdRef.current) return
       setAddresses([])
+      setTotalFound(0)
       setSearched(true)
-      setError("Could not reach the address service. Please try again.")
+      setError("Could not reach the address service. Please try again in a moment.")
     } finally {
       if (requestId === requestIdRef.current) setLoading(false)
     }
@@ -49,9 +41,10 @@ export function useOverpassAddresses() {
   const fetchViewport = useCallback(async (bbox: BBox) => {
     const requestId = ++requestIdRef.current
     try {
-      const found = await fetchAddressesInBBox(bbox)
+      const result = await findAddressesInViewport(bbox)
       if (requestId !== requestIdRef.current) return
-      setAddresses(found)
+      setAddresses(result.addresses)
+      setTotalFound(result.totalFound)
       setSearched(true)
       setError(null)
     } catch {
@@ -62,9 +55,10 @@ export function useOverpassAddresses() {
   const clear = useCallback(() => {
     requestIdRef.current++
     setAddresses([])
+    setTotalFound(0)
     setSearched(false)
     setError(null)
   }, [])
 
-  return { addresses, loading, error, searched, fetchPolygon, fetchViewport, clear }
+  return { addresses, totalFound, loading, error, searched, fetchPolygon, fetchViewport, clear }
 }
