@@ -29,6 +29,11 @@ export const MAP_DEFAULTS = {
   VIEWPORT_DEBOUNCE_MS: 500,
 } as const
 
+// Past this age, a saved campaign is confirmed with the user on return rather
+// than silently restored. A day covers "I came back after lunch"; anything
+// older is likely a different search, or a different person's phone.
+export const CAMPAIGN_STALE_MS = 24 * 60 * 60 * 1000
+
 export const AREA_SELECT = {
   DEFAULT_RADIUS_M: 250,
   MIN_RADIUS_M: 100,

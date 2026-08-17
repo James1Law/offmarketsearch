@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react"
 import type { CampaignState, SelectedAddress, LetterContent, RefineFilters } from "@/types"
 import type { EnrichmentResult } from "@/types/enrichment"
+import { CAMPAIGN_STALE_MS } from "@/lib/constants"
 
 const STORAGE_KEY = "offline-homes-campaign"
 
@@ -11,6 +12,7 @@ const defaultState: CampaignState = {
   refineFilters: null,
   enrichment: {},
   letterContent: null,
+  lastUpdatedAt: 0,
 }
 
 /** Drop enrichment entries whose address is no longer selected. */
@@ -59,9 +61,21 @@ function notify(): void {
 }
 
 function setState(next: CampaignState): void {
-  currentState = next
-  writeToStorage(next)
+  currentState = { ...next, lastUpdatedAt: Date.now() }
+  writeToStorage(currentState)
   notify()
+}
+
+/**
+ * A campaign survives in localStorage indefinitely, so returning to the map can
+ * silently restore a selection made hours ago — or by whoever last held the
+ * phone. Past CAMPAIGN_STALE_MS we ask instead of assuming.
+ */
+export function isCampaignStale(state: CampaignState, now: number = Date.now()): boolean {
+  if (state.selectedAddresses.length === 0) return false
+  // Saved before the timestamp existed: age unknown, so confirm it.
+  if (!state.lastUpdatedAt) return true
+  return now - state.lastUpdatedAt > CAMPAIGN_STALE_MS
 }
 
 // Hydrate from localStorage on first client render.
@@ -101,6 +115,10 @@ export const campaignStore = {
   },
   setLetterContent(content: LetterContent): void {
     setState({ ...currentState, letterContent: content })
+  },
+  /** Marks the campaign as current, e.g. when the user confirms they want it. */
+  touch(): void {
+    setState(currentState)
   },
   clear(): void {
     setState(defaultState)

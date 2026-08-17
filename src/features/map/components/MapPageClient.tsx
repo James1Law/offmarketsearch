@@ -5,10 +5,12 @@ import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { AddressList } from "./AddressList"
 import { AreaSelectControl } from "./AreaSelectControl"
+import { SavedCampaignNotice } from "./SavedCampaignNotice"
+import { ClearListButton } from "./ClearListButton"
 import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
 import { loadSandboxAddresses } from "../actions"
-import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
+import { useCampaignStore, campaignStore, isCampaignStale } from "@/lib/campaign-store"
 import { MAP_DEFAULTS, LIMITS, AREA_SELECT } from "@/lib/constants"
 import { circleAreaToRing, type AreaMode, type CircleArea } from "../area-select"
 import type { SelectedAddress } from "@/types"
@@ -116,10 +118,13 @@ export function MapPageClient() {
   }
 
   const selectedCount = campaignState.selectedAddresses.length
+  const showSavedNotice = isCampaignStale(campaignState)
   const showZoomHint = !drawing && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
 
   return (
     <div className="flex flex-col h-[calc(100vh-53px)]">
+      {showSavedNotice && <SavedCampaignNotice count={selectedCount} />}
+
       {/* Top bar */}
       <div className="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-sand shrink-0">
         {/* Location search */}
@@ -193,14 +198,17 @@ export function MapPageClient() {
         {/* Sidebar */}
         <aside className="w-72 shrink-0 bg-white border-l border-sand flex flex-col overflow-hidden">
           <div className="px-3 py-3 border-b border-sand">
-            <h2 className="text-sm font-semibold text-navy">
-              Selected addresses
-              {selectedCount > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-coral text-white text-xs">
-                  {selectedCount}
-                </span>
-              )}
-            </h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-navy">
+                Selected addresses
+                {selectedCount > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-coral text-white text-xs">
+                    {selectedCount}
+                  </span>
+                )}
+              </h2>
+              <ClearListButton count={selectedCount} />
+            </div>
             <p className="text-xs text-navy-soft mt-0.5">
               Place a circle to find homes, or click dots on the map to select them
             </p>

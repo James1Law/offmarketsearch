@@ -90,6 +90,12 @@ export const CampaignStateSchema = z.object({
   /** Enrichment results keyed by address id. */
   enrichment: z.record(z.string(), EnrichmentResultSchema),
   letterContent: LetterContentSchema.nullable(),
+  /**
+   * When the campaign was last changed, as epoch milliseconds. 0 means unknown
+   * — a campaign saved before this field existed — which is treated as stale so
+   * it gets confirmed rather than silently restored.
+   */
+  lastUpdatedAt: z.number(),
 })
 
 export type CampaignState = z.infer<typeof CampaignStateSchema>

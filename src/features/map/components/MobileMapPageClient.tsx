@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation"
 import { BottomSheet, type SnapRequest } from "@/components/mobile/BottomSheet"
 import { MobileAddressList } from "./MobileAddressList"
 import { AreaSelectControl } from "./AreaSelectControl"
+import { SavedCampaignNotice } from "./SavedCampaignNotice"
+import { ClearListButton } from "./ClearListButton"
 import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
 import { loadSandboxAddresses } from "../actions"
-import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
+import { useCampaignStore, campaignStore, isCampaignStale } from "@/lib/campaign-store"
 import { MAP_DEFAULTS, LIMITS, AREA_SELECT } from "@/lib/constants"
 import { circleAreaToRing, type AreaMode, type CircleArea } from "../area-select"
 import type { SelectedAddress } from "@/types"
@@ -146,10 +148,13 @@ export function MobileMapPageClient() {
   }
 
   const selectedCount = campaignState.selectedAddresses.length
+  const showSavedNotice = isCampaignStale(campaignState)
   const showZoomHint = !drawing && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {showSavedNotice && <SavedCampaignNotice count={selectedCount} />}
+
       {/* Top control bar */}
       <div className="px-3 pt-2 bg-white shrink-0 flex items-center gap-2">
         <div className="relative flex-1">
@@ -245,9 +250,12 @@ export function MobileMapPageClient() {
                         ? `${selectedCount} selected`
                         : "Selected addresses"}
                 </div>
-                {!loading && addresses.length > 0 && selectedCount > 0 && (
-                  <div className="text-xs text-coral font-medium">
-                    {selectedCount} selected
+                {!loading && selectedCount > 0 && (
+                  <div className="flex items-center gap-2 text-xs">
+                    {addresses.length > 0 && (
+                      <span className="text-coral font-medium">{selectedCount} selected</span>
+                    )}
+                    <ClearListButton count={selectedCount} />
                   </div>
                 )}
               </div>
