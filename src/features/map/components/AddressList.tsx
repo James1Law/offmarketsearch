@@ -9,9 +9,20 @@ interface AddressListProps {
   onToggle: (address: SelectedAddress) => void
   loading: boolean
   error: string | null
+  /** True once a search has run, so "none here" reads differently to "not looked yet". */
+  searched: boolean
+  onLoadDemo?: (() => void) | undefined
 }
 
-export function AddressList({ addresses, selectedIds, onToggle, loading, error }: AddressListProps) {
+export function AddressList({
+  addresses,
+  selectedIds,
+  onToggle,
+  loading,
+  error,
+  searched,
+  onLoadDemo,
+}: AddressListProps) {
   if (loading) {
     return (
       <div className="flex flex-col gap-2 p-4">
@@ -29,9 +40,25 @@ export function AddressList({ addresses, selectedIds, onToggle, loading, error }
   }
 
   if (addresses.length === 0) {
+    if (!searched) {
+      return (
+        <div className="p-4 text-sm text-navy-soft text-center">
+          No addresses yet. Zoom in to see them on the map, or draw an area.
+        </div>
+      )
+    }
     return (
-      <div className="p-4 text-sm text-navy-soft text-center">
-        No addresses yet. Zoom in to see them on the map, or draw an area.
+      <div className="p-4 text-center">
+        <p className="text-sm font-medium text-navy">No addresses found here</p>
+        <p className="text-xs text-navy-soft mt-1 leading-relaxed">
+          We only list addresses that appear in OpenStreetMap, and rural coverage can be
+          patchy. Try a wider area, or somewhere more built-up.
+        </p>
+        {onLoadDemo && (
+          <button onClick={onLoadDemo} className="text-xs text-coral font-medium hover:underline mt-2">
+            Or try demo addresses →
+          </button>
+        )}
       </div>
     )
   }

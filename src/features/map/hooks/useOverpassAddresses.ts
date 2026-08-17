@@ -19,6 +19,9 @@ export function useOverpassAddresses() {
   const [addresses, setAddresses] = useState<SelectedAddress[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // "No addresses here" and "you haven't looked yet" are both an empty list,
+  // but they need different words on screen, so track which one this is.
+  const [searched, setSearched] = useState(false)
   // Guards against out-of-order responses (viewport fetches fire on every pan).
   const requestIdRef = useRef(0)
 
@@ -30,9 +33,12 @@ export function useOverpassAddresses() {
       const found = await fetchAddressesInPolygon(ring)
       if (requestId !== requestIdRef.current) return
       setAddresses(found)
+      setSearched(true)
     } catch {
       if (requestId !== requestIdRef.current) return
-      setError("Could not load addresses. Please try again.")
+      setAddresses([])
+      setSearched(true)
+      setError("Could not reach the address service. Please try again.")
     } finally {
       if (requestId === requestIdRef.current) setLoading(false)
     }
@@ -46,6 +52,7 @@ export function useOverpassAddresses() {
       const found = await fetchAddressesInBBox(bbox)
       if (requestId !== requestIdRef.current) return
       setAddresses(found)
+      setSearched(true)
       setError(null)
     } catch {
       // Viewport fetches fail quietly — the user didn't explicitly ask.
@@ -55,8 +62,9 @@ export function useOverpassAddresses() {
   const clear = useCallback(() => {
     requestIdRef.current++
     setAddresses([])
+    setSearched(false)
     setError(null)
   }, [])
 
-  return { addresses, loading, error, fetchPolygon, fetchViewport, clear }
+  return { addresses, loading, error, searched, fetchPolygon, fetchViewport, clear }
 }

@@ -20,7 +20,8 @@ const PropertyMap = dynamic(
 export function MapPageClient() {
   const router = useRouter()
   const campaignState = useCampaignStore()
-  const { addresses, loading, error, fetchPolygon, fetchViewport, clear } = useOverpassAddresses()
+  const { addresses, loading, error, searched, fetchPolygon, fetchViewport, clear } =
+    useOverpassAddresses()
   const { results: searchResults, loading: searchLoading, search, clear: clearSearch } = useNominatimSearch()
   const [drawing, setDrawing] = useState(false)
   const [zoom, setZoom] = useState<number>(MAP_DEFAULTS.ZOOM)
@@ -200,6 +201,8 @@ export function MapPageClient() {
             onToggle={handleToggle}
             loading={loading}
             error={error}
+            searched={searched}
+            onLoadDemo={handleLoadDemo}
           />
           <div className="p-3 border-t border-sand mt-auto">
             <button

@@ -24,7 +24,8 @@ const MOBILE_FIT_PADDING = { top: 40, bottom: 240, left: 40, right: 40 }
 export function MobileMapPageClient() {
   const router = useRouter()
   const campaignState = useCampaignStore()
-  const { addresses, loading, error, fetchPolygon, fetchViewport, clear } = useOverpassAddresses()
+  const { addresses, loading, error, searched, fetchPolygon, fetchViewport, clear } =
+    useOverpassAddresses()
   const {
     results: searchResults,
     loading: searchLoading,
@@ -241,7 +242,7 @@ export function MobileMapPageClient() {
                   ? "Select at least one address"
                   : `Next: Refine your results (${selectedCount}) →`}
               </button>
-              {selectedCount === 0 && (
+              {addresses.length === 0 && (
                 <button
                   onClick={handleLoadDemo}
                   disabled={demoLoading}
@@ -259,6 +260,8 @@ export function MobileMapPageClient() {
             onToggle={handleToggle}
             loading={loading}
             error={error}
+            searched={searched}
+            onLoadDemo={handleLoadDemo}
           />
         </BottomSheet>
       </div>
