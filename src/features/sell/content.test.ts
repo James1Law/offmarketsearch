@@ -75,10 +75,8 @@ describe("unverified partners never render", () => {
     expect(partnersForStep(1)).toEqual([])
   })
 
-  it("keeps the unconfirmed conveyancer off step 6 for now", () => {
-    const conveyancer = REFERRAL_PARTNERS.find((p) => p.id === "opendoor-conveyancing")
-    expect(conveyancer?.verified).toBe(false)
-    expect(partnersForStep(6)).toEqual([])
+  it("surfaces the conveyancer on the instruct-a-conveyancer step", () => {
+    expect(partnersForStep(6).map((p) => p.id)).toEqual(["opendoor-conveyancing"])
   })
 
   it("shows mortgage and removals under the onward move, not in the sale steps", () => {

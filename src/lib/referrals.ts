@@ -54,15 +54,17 @@ export const REFERRAL_PARTNERS: readonly ReferralPartner[] = [
     name: "Open Door Legal",
     offer: "Conveyancing for the legal side of your sale, covering England and Wales.",
     cta: "Get a conveyancing quote",
-    // Best match found for "Opendoor" conveyancing, but unconfirmed: a search
-    // for the trading name also surfaced an SRA entry for Open Door (Legal
-    // Services) Ltd whose licence ceased in 2018, and it could not be checked
-    // directly from here. Confirm the firm, its current regulator and the
-    // tracked referral URL, then flip verified to true.
+    // Firm identity confirmed by James, who holds the referral account.
+    // Outstanding: this is the public site rather than the tracked referral
+    // URL, and the firm's current regulator (SRA or CLC) has not been checked
+    // — a search for the trading name turned up an SRA entry for Open Door
+    // (Legal Services) Ltd whose licence ceased in 2018, which may well be an
+    // unrelated predecessor. Worth confirming before launch, since the page
+    // sends people here to hand over the legal work on their sale.
     url: "https://opendoorlegal.co.uk/",
     disclosure:
       "We're paid a fee if your sale completes with Open Door. It doesn't change what you pay.",
-    verified: false,
+    verified: true,
   },
   {
     id: "landc-mortgage",
