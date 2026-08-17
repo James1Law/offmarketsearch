@@ -10,6 +10,9 @@ import { MAP_DEFAULTS } from "@/lib/constants"
 import type { SelectedAddress, NominatimResult } from "@/types"
 import type { PolygonRing } from "@/lib/geocoding/overpass"
 import type { BBox } from "../hooks/useOverpassAddresses"
+import { circleAreaToRing, type AreaMode, type CircleArea } from "../area-select"
+
+const CIRCLE_SOURCE = "area-circle"
 
 interface FitPadding {
   top: number
@@ -23,7 +26,13 @@ interface PropertyMapProps {
   selectedIds: Set<string>
   /** Tapping/clicking a pin toggles its selection on all devices. */
   onToggle: (address: SelectedAddress) => void
-  /** Whether polygon drawing mode is active. */
+  /** Which area tool is active. Circle mode places its centre on map tap. */
+  mode: AreaMode
+  /** The circle being placed, or null before the user has tapped anywhere. */
+  circle: CircleArea | null
+  /** Called with the tapped point when in circle mode. */
+  onCircleCenterChange: (center: [lng: number, lat: number]) => void
+  /** Whether lasso drawing is active. Only meaningful when mode is "lasso". */
   drawing: boolean
   /** Called when drawing ends from within the map (polygon completed). */
   onDrawingChange: (drawing: boolean) => void
@@ -91,6 +100,9 @@ export function PropertyMap({
   addresses,
   selectedIds,
   onToggle,
+  mode,
+  circle,
+  onCircleCenterChange,
   drawing,
   onDrawingChange,
   onPolygonComplete,
@@ -109,6 +121,8 @@ export function PropertyMap({
 
   // Stable refs so map event handlers always call the latest callbacks
   const drawingRef = useRef(drawing)
+  const modeRef = useRef(mode)
+  const onCircleCenterChangeRef = useRef(onCircleCenterChange)
   const onToggleRef = useRef(onToggle)
   const onDrawingChangeRef = useRef(onDrawingChange)
   const onPolygonCompleteRef = useRef(onPolygonComplete)
@@ -116,6 +130,8 @@ export function PropertyMap({
   const fitPaddingRef = useRef(fitPadding)
 
   useEffect(() => { drawingRef.current = drawing })
+  useEffect(() => { modeRef.current = mode })
+  useEffect(() => { onCircleCenterChangeRef.current = onCircleCenterChange })
   useEffect(() => { onToggleRef.current = onToggle })
   useEffect(() => { onDrawingChangeRef.current = onDrawingChange })
   useEffect(() => { onPolygonCompleteRef.current = onPolygonComplete })
@@ -138,6 +154,24 @@ export function PropertyMap({
     map.on("load", () => {
       map.addSource("satellite", buildSatelliteSource())
       map.addLayer({ id: "satellite", type: "raster", source: "satellite", layout: { visibility: "none" } })
+
+      // Circle overlay. Added after satellite so it draws on top of imagery.
+      map.addSource(CIRCLE_SOURCE, {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+      })
+      map.addLayer({
+        id: `${CIRCLE_SOURCE}-fill`,
+        type: "fill",
+        source: CIRCLE_SOURCE,
+        paint: { "fill-color": "#f4795b", "fill-opacity": 0.12 },
+      })
+      map.addLayer({
+        id: `${CIRCLE_SOURCE}-outline`,
+        type: "line",
+        source: CIRCLE_SOURCE,
+        paint: { "line-color": "#f4795b", "line-width": 2 },
+      })
 
       const draw = new TerraDraw({
         adapter: new TerraDrawMapLibreGLAdapter({ map }),
@@ -188,6 +222,11 @@ export function PropertyMap({
       })
       drawRef.current = draw
       setMapReady(true)
+    })
+
+    map.on("click", (e) => {
+      if (modeRef.current !== "circle") return
+      onCircleCenterChangeRef.current([e.lngLat.lng, e.lngLat.lat])
     })
 
     map.on("moveend", (e) => {
@@ -243,6 +282,31 @@ export function PropertyMap({
       draw.clear()
     }
   }, [drawing, mapReady])
+
+  // Draw the circle, and clear it when the user switches to the lasso
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    const source = map.getSource<maplibregl.GeoJSONSource>(CIRCLE_SOURCE)
+    if (!source) return
+
+    if (mode !== "circle" || !circle) {
+      source.setData({ type: "FeatureCollection", features: [] })
+      return
+    }
+    source.setData({
+      type: "Feature",
+      properties: {},
+      geometry: { type: "Polygon", coordinates: [circleAreaToRing(circle)] },
+    })
+  }, [circle, mode, mapReady])
+
+  // Crosshair while placing a circle, so the map reads as "tap to put it here"
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    map.getCanvas().style.cursor = mode === "circle" ? "crosshair" : ""
+  }, [mode, mapReady])
 
   // Toggle satellite imagery
   useEffect(() => {

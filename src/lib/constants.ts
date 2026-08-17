@@ -29,6 +29,18 @@ export const MAP_DEFAULTS = {
   VIEWPORT_DEBOUNCE_MS: 500,
 } as const
 
+export const AREA_SELECT = {
+  DEFAULT_RADIUS_M: 250,
+  MIN_RADIUS_M: 100,
+  // Caps how much of the map one query can cover, which keeps Overpass
+  // responsive and pairs with the 50-letter campaign cap.
+  MAX_RADIUS_M: 1000,
+  RADIUS_STEP_M: 50,
+  // Vertices used to approximate the circle. 64 looks smooth at every zoom
+  // the map allows without bloating the Overpass query.
+  CIRCLE_STEPS: 64,
+} as const
+
 export function formatPence(pence: number): string {
   return `£${(pence / 100).toFixed(2)}`
 }

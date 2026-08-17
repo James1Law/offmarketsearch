@@ -5,11 +5,13 @@ import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { BottomSheet, type SnapRequest } from "@/components/mobile/BottomSheet"
 import { MobileAddressList } from "./MobileAddressList"
+import { AreaSelectControl } from "./AreaSelectControl"
 import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
 import { loadSandboxAddresses } from "../actions"
 import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
-import { MAP_DEFAULTS, LIMITS } from "@/lib/constants"
+import { MAP_DEFAULTS, LIMITS, AREA_SELECT } from "@/lib/constants"
+import { circleAreaToRing, type AreaMode, type CircleArea } from "../area-select"
 import type { SelectedAddress } from "@/types"
 import type { PolygonRing } from "@/lib/geocoding/overpass"
 
@@ -32,6 +34,8 @@ export function MobileMapPageClient() {
     search,
     clear: clearSearch,
   } = useNominatimSearch()
+  const [mode, setMode] = useState<AreaMode>("circle")
+  const [circle, setCircle] = useState<CircleArea | null>(null)
   const [drawing, setDrawing] = useState(false)
   const [zoom, setZoom] = useState<number>(MAP_DEFAULTS.ZOOM)
   const [searchQuery, setSearchQuery] = useState("")
@@ -84,6 +88,34 @@ export function MobileMapPageClient() {
     setSnapRequest({ index: 1, token: Date.now() })
   }
 
+  function handleModeChange(next: AreaMode) {
+    setMode(next)
+    setDrawing(false)
+    if (next === "lasso") setCircle(null)
+  }
+
+  function handleCircleCenterChange(center: [lng: number, lat: number]) {
+    setCircle((current) => ({
+      center,
+      radiusMetres: current?.radiusMetres ?? AREA_SELECT.DEFAULT_RADIUS_M,
+    }))
+    // Get the sheet out of the way so the circle is visible while sizing it.
+    setSnapRequest({ index: 0, token: Date.now() })
+  }
+
+  function handleRadiusChange(metres: number) {
+    setCircle((current) => (current ? { ...current, radiusMetres: metres } : current))
+  }
+
+  // Deliberately only on the button, not on every slider nudge — dragging the
+  // radius must not fire an Overpass query per pixel.
+  async function handleSearchCircle() {
+    if (!circle) return
+    clear()
+    await fetchPolygon(circleAreaToRing(circle))
+    setSnapRequest({ index: 1, token: Date.now() })
+  }
+
   function handleViewportChange(bbox: BBox, newZoom: number) {
     setZoom(newZoom)
     if (newZoom >= MAP_DEFAULTS.PIN_ZOOM) fetchViewport(bbox)
@@ -119,7 +151,7 @@ export function MobileMapPageClient() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Top control bar */}
-      <div className="px-3 py-2 bg-white border-b border-sand shrink-0 flex items-center gap-2">
+      <div className="px-3 pt-2 bg-white shrink-0 flex items-center gap-2">
         <div className="relative flex-1">
           <input
             type="text"
@@ -150,22 +182,20 @@ export function MobileMapPageClient() {
             </ul>
           )}
         </div>
-        {!drawing ? (
-          <button
-            onClick={startDrawing}
-            className="shrink-0 text-sm font-semibold px-4 py-2.5 rounded-lg bg-coral active:bg-coral-dark text-white"
-            aria-label="Draw area"
-          >
-            Draw area
-          </button>
-        ) : (
-          <button
-            onClick={() => setDrawing(false)}
-            className="shrink-0 text-sm font-medium px-4 py-2.5 rounded-lg border border-sand text-navy-soft"
-          >
-            Cancel
-          </button>
-        )}
+      </div>
+
+      <div className="px-3 pb-2 bg-white border-b border-sand shrink-0">
+        <AreaSelectControl
+          mode={mode}
+          onModeChange={handleModeChange}
+          circle={circle}
+          onRadiusChange={handleRadiusChange}
+          onSearchCircle={handleSearchCircle}
+          drawing={drawing}
+          onDrawingChange={(next) => (next ? startDrawing() : setDrawing(false))}
+          loading={loading}
+          compact
+        />
       </div>
 
       {/* Map + sheet */}
@@ -175,6 +205,9 @@ export function MobileMapPageClient() {
             addresses={pinAddresses}
             selectedIds={selectedIds}
             onToggle={handleToggle}
+            mode={mode}
+            circle={circle}
+            onCircleCenterChange={handleCircleCenterChange}
             drawing={drawing}
             onDrawingChange={setDrawing}
             onPolygonComplete={handlePolygonComplete}
@@ -193,7 +226,7 @@ export function MobileMapPageClient() {
 
         {showZoomHint && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-max max-w-[85%] bg-white/95 text-navy-soft text-xs px-3 py-1.5 rounded-full shadow-md pointer-events-none text-center">
-            Search or zoom in to see addresses — or draw an area
+            Tap the map to place a search area, or zoom in to see addresses
           </div>
         )}
 

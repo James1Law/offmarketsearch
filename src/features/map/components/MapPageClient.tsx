@@ -4,11 +4,13 @@ import { useState, useMemo } from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { AddressList } from "./AddressList"
+import { AreaSelectControl } from "./AreaSelectControl"
 import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
 import { loadSandboxAddresses } from "../actions"
 import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
-import { MAP_DEFAULTS, LIMITS } from "@/lib/constants"
+import { MAP_DEFAULTS, LIMITS, AREA_SELECT } from "@/lib/constants"
+import { circleAreaToRing, type AreaMode, type CircleArea } from "../area-select"
 import type { SelectedAddress } from "@/types"
 import type { PolygonRing } from "@/lib/geocoding/overpass"
 
@@ -23,6 +25,8 @@ export function MapPageClient() {
   const { addresses, loading, error, searched, fetchPolygon, fetchViewport, clear } =
     useOverpassAddresses()
   const { results: searchResults, loading: searchLoading, search, clear: clearSearch } = useNominatimSearch()
+  const [mode, setMode] = useState<AreaMode>("circle")
+  const [circle, setCircle] = useState<CircleArea | null>(null)
   const [drawing, setDrawing] = useState(false)
   const [zoom, setZoom] = useState<number>(MAP_DEFAULTS.ZOOM)
   const [searchQuery, setSearchQuery] = useState("")
@@ -64,6 +68,31 @@ export function MapPageClient() {
   function handlePolygonComplete(ring: PolygonRing) {
     clear()
     fetchPolygon(ring)
+  }
+
+  function handleModeChange(next: AreaMode) {
+    setMode(next)
+    setDrawing(false)
+    if (next === "lasso") setCircle(null)
+  }
+
+  function handleCircleCenterChange(center: [lng: number, lat: number]) {
+    setCircle((current) => ({
+      center,
+      radiusMetres: current?.radiusMetres ?? AREA_SELECT.DEFAULT_RADIUS_M,
+    }))
+  }
+
+  function handleRadiusChange(metres: number) {
+    setCircle((current) => (current ? { ...current, radiusMetres: metres } : current))
+  }
+
+  // Deliberately only on the button, not on every slider nudge — dragging the
+  // radius must not fire an Overpass query per pixel.
+  function handleSearchCircle() {
+    if (!circle) return
+    clear()
+    fetchPolygon(circleAreaToRing(circle))
   }
 
   function handleViewportChange(bbox: BBox, newZoom: number) {
@@ -125,32 +154,17 @@ export function MapPageClient() {
           )}
         </div>
 
-        {/* Draw control */}
-        <div className="flex items-center gap-2">
-          {!drawing ? (
-            <button
-              onClick={() => setDrawing(true)}
-              className="text-sm font-medium px-3 py-1.5 rounded-lg bg-coral text-white hover:bg-coral-dark transition-colors flex items-center gap-1.5"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path d="M12 3l8 5-3 10H7L4 8z" strokeLinejoin="round" />
-              </svg>
-              Draw area
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-coral-dark font-medium bg-cream px-3 py-1.5 rounded-lg">
-                Click and drag around the homes you want — release to finish
-              </span>
-              <button
-                onClick={() => setDrawing(false)}
-                className="text-sm text-navy-soft hover:text-navy px-2 py-1.5"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Area selection */}
+        <AreaSelectControl
+          mode={mode}
+          onModeChange={handleModeChange}
+          circle={circle}
+          onRadiusChange={handleRadiusChange}
+          onSearchCircle={handleSearchCircle}
+          drawing={drawing}
+          onDrawingChange={setDrawing}
+          loading={loading}
+        />
       </div>
 
       {/* Main content */}
@@ -161,6 +175,9 @@ export function MapPageClient() {
             addresses={pinAddresses}
             selectedIds={selectedIds}
             onToggle={handleToggle}
+            mode={mode}
+            circle={circle}
+            onCircleCenterChange={handleCircleCenterChange}
             drawing={drawing}
             onDrawingChange={setDrawing}
             onPolygonComplete={handlePolygonComplete}
@@ -168,7 +185,7 @@ export function MapPageClient() {
           />
           {showZoomHint && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 bg-white/95 text-navy-soft text-xs px-3 py-1.5 rounded-full shadow-md pointer-events-none">
-              Search or zoom in to see addresses — or draw an area
+              Tap the map to place a search area, or zoom in to see addresses
             </div>
           )}
         </div>
@@ -185,7 +202,7 @@ export function MapPageClient() {
               )}
             </h2>
             <p className="text-xs text-navy-soft mt-0.5">
-              Click dots on the map to select addresses, or draw an area
+              Place a circle to find homes, or click dots on the map to select them
             </p>
             <button
               onClick={handleLoadDemo}
