@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
 import { SellSteps } from "@/features/sell/components/SellSteps"
+import { OnwardMove } from "@/features/sell/components/OnwardMove"
 import { SELL_INTRO, SELL_STEPS, SELL_DISCLAIMER } from "@/features/sell/content"
 import { REFERRAL_DISCLOSURE } from "@/lib/referrals"
 
@@ -66,6 +67,8 @@ export default function SellPage() {
           </p>
 
           <SellSteps />
+
+          <OnwardMove />
 
           <div className="mt-12 rounded-xl border border-sand bg-cream px-5 py-5">
             <h2 className="font-semibold text-navy">Free memorandum of sale template</h2>

@@ -126,6 +126,18 @@ export const SELL_SECTIONS: readonly SellSection[] = [
 export const SELL_STEPS: readonly SellStep[] = SELL_SECTIONS.flatMap((s) => s.steps)
 
 /**
+ * Mortgages and removals aren't part of selling — they belong to wherever the
+ * reader is going next — so they sit in their own block rather than being
+ * squeezed into a step. Step 8 in particular is about the *buyer's* mortgage,
+ * and a mortgage link there would read as advice to the seller.
+ */
+export const SELL_ONWARD_MOVE = {
+  heading: "Your onward move",
+  standfirst:
+    "Not part of the sale itself, but the two things most sellers line up alongside it.",
+} as const
+
+/**
  * General information about how a private sale works, not legal or financial
  * advice. Shown at the foot of the page.
  */
