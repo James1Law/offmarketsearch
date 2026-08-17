@@ -78,13 +78,36 @@ and making persistence visible and reversible (A2).
 
 ### "She struggled with the draw a map functionality"
 
-The current tool is a freehand lasso (`TerraDrawFreehandMode`, `drawInteraction: "click-drag"`).
-Drag is the map's own pan gesture everywhere else, so the interaction fights muscle memory —
+The tool was a freehand lasso (`TerraDrawFreehandMode`, `drawInteraction: "click-drag"`). Drag
+is the map's own pan gesture everywhere else, so the interaction fought muscle memory —
 acutely so on touch.
 
-Commit `08360f8` already moved *tap-vertex polygon → freehand lasso*. This is the second
-attempt at the same problem, so the fix is not "choose a better single mode" but "make the
-default impossible to get wrong, and offer a choice".
+Commit `08360f8` had already moved *tap-vertex polygon → freehand lasso*, making this the
+second attempt at the same problem. The first pass at A3 shipped a circle *alongside* the
+lasso behind a mode switcher; on review that was worse, not better, because it made the first
+decision "which tool?" — not a decision anyone wants before they have found a single house.
+The lasso and the `terra-draw` dependencies are now gone, leaving one way to mark out an area.
+
+### Overpass was unreachable from the browser
+
+Found while reviewing the deployed preview, and the most serious problem of the lot:
+
+```
+Access to fetch at 'https://overpass-api.de/api/interpreter' … blocked by CORS policy:
+No 'Access-Control-Allow-Origin' header is present on the requested resource.
+```
+
+Address lookup was failing for **every area, everywhere**, because the query ran client-side
+and Overpass sends no CORS header. Nothing ever came back.
+
+This is also what the fabricated addresses were concealing. The mock fallback fired whenever a
+query returned nothing, which included every one of these failures, so a total outage rendered
+as eight plausible houses. Removing the fallback (A0) is the only reason it became visible —
+which reframes A0: it was not covering patchy rural coverage, it was covering an outage.
+
+The fix is to call Overpass from our own server (A4). That also lets us send the descriptive
+`User-Agent` Overpass asks for; anonymous browser traffic is rate-limited without one, so the
+client-side approach was doubly doomed.
 
 ---
 
@@ -96,6 +119,7 @@ default impossible to get wrong, and offer a choice".
 | A1 | Honest provenance + demo access | No | With A0 |
 | A2 | Session visible and clearable | No | Then |
 | A3 | Radius-circle area selection | No | Then |
+| A4 | Overpass server-side + distance ranking | No | Then |
 | B | `/sell` guide page | No | Independent |
 | C1 | Memorandum of Sale, link handoff | No | After A + B |
 | C2 | Memorandum of Sale, email round-trip | **Yes** | Phase 2 |
@@ -145,17 +169,40 @@ map panning, and it matches how people describe a search ("homes near the school
   `circleToPolygonRing(center, radiusMetres, steps): PolygonRing` — a 64-gon approximation,
   unit-tested.
 - The ring feeds the **existing** `fetchAddressesInPolygon` path unchanged. No new fetching code.
-- New `AreaSelectControl.tsx`: mode switcher (Circle / Lasso), radius slider, explicit
-  **"Find homes here"** button. Nothing fires until the user confirms, so dragging the slider
-  costs no Overpass calls.
-- `PropertyMap.tsx` gains a `mode` prop and renders the circle as a GeoJSON source + layer
-  with a centre marker. Tapping again moves the centre.
-- Radius: default 250m, min 100m, max 1000m. The max guards Overpass load and pairs with the
-  existing `MAX_ADDRESSES_PER_DRAW` cap of 50.
-- Lasso retained behind the switcher for irregular areas.
-- One-time coach mark on the area control, flagged in `localStorage`.
+- New `AreaSelectControl.tsx`: radius slider and an explicit **"Find homes here"** button.
+  Nothing fires until the user confirms, so dragging the slider costs no Overpass calls.
+- `PropertyMap.tsx` renders the circle as a GeoJSON source + layer. Tapping moves the centre.
+- Radius: default 1km, min 250m, max 5km — see A4 for why the first pass capped it at 1km and
+  why that cap was wrong.
+- No one-time coach mark: until a circle is placed the control reads "Tap the map to place
+  your search area", so the instruction is always present and needs no dismissing.
 
-**Files touched across A:** `lib/geocoding/overpass.ts`, `lib/campaign-store.ts`,
+## A4. Overpass server-side, and a radius worth having
+
+- Move both lookups behind server actions (`findAddressesInArea`, `findAddressesInViewport`),
+  which removes the cross-origin failure entirely. Validate inputs with Zod at the action
+  boundary: a server action is a public HTTP endpoint whatever the call site looks like.
+- Send a descriptive `User-Agent`, and name 429/504 separately — Overpass sheds load rather
+  than queueing, and it is a free shared service.
+- **Rank by distance before capping.** The 1km radius limit in the first pass was set by the
+  50-address truncation, not by any view about search distance: the code kept whichever 50
+  Overpass listed first, which is ordered by OSM element id and so effectively arbitrary. A
+  wider radius would have returned a meaningless scattering. Sorting by distance from the
+  centre of the search area first makes the cap mean "the 50 closest to where I tapped", which
+  is a coherent promise — and only then is a 5km radius worth offering.
+- Say when results were trimmed: *"Showing the 50 homes closest to the middle of your circle,
+  out of 412 found."* A silent cap reads as "this is everything".
+
+## A5. Survive narrow viewports
+
+Mobile routing is UA-sniffing middleware (`src/proxy.ts`), so a narrow desktop window — or any
+user agent the regex misses — gets the desktop layout crushed to phone width: the step nav
+wraps to four lines, the search box collapses, the control row overflows and the map is
+reduced to a strip. Make the step nav, top bar and sidebar degrade responsively rather than
+depending on UA detection being right.
+
+**Files touched across A:** `lib/geocoding/overpass.ts`, `lib/geo/distance.ts`,
+`features/map/actions.ts`, `components/step-nav.tsx`, `lib/campaign-store.ts`,
 `lib/constants.ts`, new `lib/geo/circle.ts`, `features/map/hooks/useOverpassAddresses.ts`,
 `features/map/components/*`, `features/refine/components/*`, `.env.example`.
 
