@@ -8,9 +8,14 @@ export default function HomePage() {
       <header className="border-b border-sand bg-cream">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <Logo />
-          <Link href="/map" className="text-sm text-coral font-medium hover:underline">
-            Get started →
-          </Link>
+          <nav className="flex items-center gap-5">
+            <Link href="/sell" className="text-sm text-navy-soft hover:text-navy">
+              Selling your home
+            </Link>
+            <Link href="/map" className="text-sm text-coral font-medium hover:underline">
+              Get started →
+            </Link>
+          </nav>
         </div>
       </header>
 
@@ -83,7 +88,15 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-sand py-6 px-4 text-center text-sm text-navy-soft/70 bg-cream">
-        © {new Date().getFullYear()} Offline.homes · Letters posted within 1–2 business days
+        <p>
+          Approached by a buyer?{" "}
+          <Link href="/sell" className="text-coral font-medium hover:underline">
+            How to sell without an estate agent
+          </Link>
+        </p>
+        <p className="mt-2">
+          © {new Date().getFullYear()} Offline.homes · Letters posted within 1–2 business days
+        </p>
       </footer>
     </div>
   )

@@ -9,6 +9,7 @@ import { DataAttribution } from "./DataAttribution"
 import { useEnrichment } from "../hooks/useEnrichment"
 import { matchesFilters, normaliseFilters, type RefineFilters } from "../filters"
 import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
+import { describeDataSource } from "../data-source"
 
 export function RefinePageClient() {
   const router = useRouter()
@@ -107,9 +108,7 @@ export function RefinePageClient() {
             <span className="text-xs text-navy-soft/70 text-right">
               {loadingCount > 0
                 ? `Fetching property details (${rows.length - loadingCount}/${rows.length})…`
-                : liveCount > 0
-                  ? "Property data by Chimnie"
-                  : "Sample property data for this prototype"}
+                : describeDataSource(liveCount, rows.length)}
             </span>
           </div>
           {excludedForUnknown > 0 && (
@@ -134,6 +133,7 @@ export function RefinePageClient() {
                 attributes={result?.attributes ?? null}
                 matched={matched}
                 loading={loading}
+                source={result?.source ?? null}
               />
             ))}
           </div>

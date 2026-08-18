@@ -17,11 +17,13 @@ export function StepNav() {
 
   return (
     <header className="border-b border-sand bg-cream">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link href="/">
+      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+        <Link href="/" className="shrink-0">
           <Logo markClassName="w-6 h-6" textClassName="text-base" />
         </Link>
-        <nav className="flex items-center gap-1 text-sm">
+        {/* Narrow viewports get the current step only: the full trail wraps to
+            four lines and swamps the header. */}
+        <nav className="hidden md:flex items-center gap-1 text-sm">
           {STEPS.map((step, i) => {
             const isPast = currentIndex > i
             const isCurrent = currentIndex === i
@@ -43,6 +45,9 @@ export function StepNav() {
             )
           })}
         </nav>
+        <span className="md:hidden text-sm font-semibold text-coral truncate">
+          {STEPS[currentIndex]?.label}
+        </span>
       </div>
     </header>
   )

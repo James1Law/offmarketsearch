@@ -1,93 +1,134 @@
 import { z } from "zod"
 import { OverpassElementSchema } from "@/types"
-import type { SelectedAddress } from "@/types"
+import type { AreaSearchResult, BBox, PolygonRing, SelectedAddress } from "@/types"
 import { MAP_DEFAULTS } from "@/lib/constants"
+import { haversineMetres, ringCentroid } from "@/lib/geo/distance"
+
+// ---------------------------------------------------------------------------
+// Server-only. These calls used to run in the browser, where overpass-api.de
+// rejected them: "blocked by CORS policy: No 'Access-Control-Allow-Origin'
+// header". Going through our own server removes the cross-origin problem
+// entirely and lets us send the descriptive User-Agent Overpass asks for, which
+// anonymous browser traffic gets rate-limited without.
+//
+// Reach these through the server actions in features/map/actions.ts.
+// ---------------------------------------------------------------------------
 
 const OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
-interface BBox {
-  south: number
-  west: number
-  north: number
-  east: number
-}
+const USER_AGENT = "Offline.homes/1.0 (+https://offline.homes; letters to homeowners)"
 
-/** A polygon ring as [lng, lat] tuples. May or may not repeat the first point at the end. */
-export type PolygonRing = [number, number][]
+/**
+ * How many matches to ask Overpass for. Larger than the campaign cap on
+ * purpose: we rank by distance from the middle of the search area and keep the
+ * closest, so we need a pool to rank.
+ */
+const OVERPASS_RESULT_LIMIT = 400
 
 const OverpassResponseSchema = z.object({
   elements: z.array(OverpassElementSchema),
 })
 
 /**
- * Viewport fetch: returns an empty list when the area has no data — unlike the
- * polygon fetch, panning around should never surface mock addresses.
+ * Both lookups return only genuine OpenStreetMap addresses, and an empty list
+ * when an area has none. Nothing here may invent an address: these feed the
+ * basket, and a letter costs real money to post to a real letterbox.
  */
-export async function fetchAddressesInBBox(bbox: BBox): Promise<SelectedAddress[]> {
+export async function fetchAddressesInBBox(bbox: BBox): Promise<AreaSearchResult> {
   const { south, west, north, east } = bbox
-  const filter = `(${south},${west},${north},${east})`
-  const found = await runAddressQuery(filter)
-  return found ?? []
+  const found = await runAddressQuery(`(${south},${west},${north},${east})`)
+  return rankAndCap(found, [(west + east) / 2, (south + north) / 2])
 }
 
-export async function fetchAddressesInPolygon(ring: PolygonRing): Promise<SelectedAddress[]> {
+export async function fetchAddressesInPolygon(ring: PolygonRing): Promise<AreaSearchResult> {
   // Overpass auto-closes the polygon, so drop a repeated closing point.
   const open = isClosed(ring) ? ring.slice(0, -1) : ring
   const poly = open.map(([lng, lat]) => `${lat} ${lng}`).join(" ")
-  const filter = `(poly:"${poly}")`
-  const found = await runAddressQuery(filter)
-  return found ?? fallbackPolygonAddresses(open)
+  const found = await runAddressQuery(`(poly:"${poly}")`)
+  return rankAndCap(found, ringCentroid(ring))
 }
 
-/** Returns null when the query failed or matched nothing, so callers can fall back. */
-async function runAddressQuery(areaFilter: string): Promise<SelectedAddress[] | null> {
+/**
+ * Keeps the addresses closest to the centre of the search area.
+ *
+ * A 5km circle over a city matches thousands of homes but a campaign is capped
+ * at 50 letters, so something has to give. Ranking by distance makes the cap
+ * mean "the 50 nearest the middle of your circle" rather than "whichever 50
+ * Overpass happened to list first".
+ */
+function rankAndCap(
+  addresses: SelectedAddress[],
+  centre: [lng: number, lat: number],
+): AreaSearchResult {
+  const ranked = [...addresses].sort(
+    (a, b) => haversineMetres(centre, [a.lng, a.lat]) - haversineMetres(centre, [b.lng, b.lat]),
+  )
+  return {
+    addresses: ranked.slice(0, MAP_DEFAULTS.MAX_ADDRESSES_PER_DRAW),
+    totalFound: ranked.length,
+  }
+}
+
+/**
+ * Throws when the address service could not be reached or its response made no
+ * sense; returns an empty array when the area genuinely has no addresses. The
+ * two are different things to tell the user, so they stay distinguishable.
+ */
+async function runAddressQuery(areaFilter: string): Promise<SelectedAddress[]> {
   const query = `
-    [out:json][timeout:10];
+    [out:json][timeout:25];
     (
       node["addr:housenumber"]["addr:street"]${areaFilter};
       way["addr:housenumber"]["addr:street"]${areaFilter};
     );
-    out center 100;
+    out center ${OVERPASS_RESULT_LIMIT};
   `
-  try {
-    const res = await fetch(OVERPASS_URL, {
-      method: "POST",
-      body: `data=${encodeURIComponent(query)}`,
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      signal: AbortSignal.timeout(12000),
-    })
-    if (!res.ok) return null
-    const raw: unknown = await res.json()
-    const parsed = OverpassResponseSchema.parse(raw)
-    const addresses = parsed.elements
-      .slice(0, MAP_DEFAULTS.MAX_ADDRESSES_PER_DRAW)
-      .map((el): SelectedAddress | null => {
-        const tags: Record<string, string> = el.tags ?? {}
-        const houseNumber = tags["addr:housenumber"]
-        const street = tags["addr:street"]
-        if (!houseNumber || !street) return null
-        const lat = el.lat ?? el.center?.lat
-        const lng = el.lon ?? el.center?.lon
-        if (lat === undefined || lng === undefined) return null
-        const postcode = tags["addr:postcode"]
-        const displayAddress = postcode
-          ? `${houseNumber} ${street}, ${postcode}`
-          : `${houseNumber} ${street}`
-        return {
-          id: `osm-${el.id}`,
-          displayAddress,
-          streetAddress: `${houseNumber} ${street}`,
-          postcode,
-          lat,
-          lng,
-        }
-      })
-      .filter((a): a is SelectedAddress => a !== null)
+  const res = await fetch(OVERPASS_URL, {
+    method: "POST",
+    body: `data=${encodeURIComponent(query)}`,
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      "User-Agent": USER_AGENT,
+    },
+    signal: AbortSignal.timeout(30000),
+    cache: "no-store",
+  })
 
-    return addresses.length > 0 ? addresses : null
-  } catch {
-    return null
+  // Overpass sheds load with 429 and 504 rather than queueing, and it is a free
+  // shared service, so this is a normal condition worth naming precisely.
+  if (res.status === 429 || res.status === 504) {
+    throw new Error(`Overpass is busy: ${res.status}`)
   }
+  if (!res.ok) {
+    throw new Error(`Overpass request failed: ${res.status} ${res.statusText}`)
+  }
+
+  const raw: unknown = await res.json()
+  const parsed = OverpassResponseSchema.parse(raw)
+
+  return parsed.elements
+    .map((el): SelectedAddress | null => {
+      const tags: Record<string, string> = el.tags ?? {}
+      const houseNumber = tags["addr:housenumber"]
+      const street = tags["addr:street"]
+      if (!houseNumber || !street) return null
+      const lat = el.lat ?? el.center?.lat
+      const lng = el.lon ?? el.center?.lon
+      if (lat === undefined || lng === undefined) return null
+      const postcode = tags["addr:postcode"]
+      const displayAddress = postcode
+        ? `${houseNumber} ${street}, ${postcode}`
+        : `${houseNumber} ${street}`
+      return {
+        id: `osm-${el.id}`,
+        displayAddress,
+        streetAddress: `${houseNumber} ${street}`,
+        postcode,
+        lat,
+        lng,
+      }
+    })
+    .filter((a): a is SelectedAddress => a !== null)
 }
 
 function isClosed(ring: PolygonRing): boolean {
@@ -95,43 +136,4 @@ function isClosed(ring: PolygonRing): boolean {
   const last = ring[ring.length - 1]
   if (!first || !last) return false
   return first[0] === last[0] && first[1] === last[1]
-}
-
-function fallbackPolygonAddresses(ring: PolygonRing): SelectedAddress[] {
-  // Spread mock points along the bbox diagonal, pulled halfway towards the
-  // centroid so they land inside typical hand-drawn shapes.
-  const lngs = ring.map(([lng]) => lng)
-  const lats = ring.map(([, lat]) => lat)
-  const west = Math.min(...lngs)
-  const east = Math.max(...lngs)
-  const south = Math.min(...lats)
-  const north = Math.max(...lats)
-  const centroidLng = lngs.reduce((a, b) => a + b, 0) / lngs.length
-  const centroidLat = lats.reduce((a, b) => a + b, 0) / lats.length
-  return mockAddresses((i) => {
-    const diagLat = south + ((north - south) * (i + 1)) / 9
-    const diagLng = west + ((east - west) * (i + 1)) / 9
-    return {
-      lat: centroidLat + (diagLat - centroidLat) * 0.5,
-      lng: centroidLng + (diagLng - centroidLng) * 0.5,
-    }
-  })
-}
-
-function mockAddresses(position: (i: number) => { lat: number; lng: number }): SelectedAddress[] {
-  const streets = ["Maple Avenue", "Oak Street", "Church Lane", "High Street", "Victoria Road"]
-  const postcodeArea = "SW1A"
-  return Array.from({ length: 8 }, (_, i) => {
-    const street = streets[i % streets.length] ?? "High Street"
-    const number = (i + 1) * 3
-    const { lat, lng } = position(i)
-    return {
-      id: `mock-${i}`,
-      displayAddress: `${number} ${street}, ${postcodeArea} ${i + 1}AA`,
-      streetAddress: `${number} ${street}`,
-      postcode: `${postcodeArea} ${i + 1}AA`,
-      lat,
-      lng,
-    }
-  })
 }

@@ -90,6 +90,12 @@ export const CampaignStateSchema = z.object({
   /** Enrichment results keyed by address id. */
   enrichment: z.record(z.string(), EnrichmentResultSchema),
   letterContent: LetterContentSchema.nullable(),
+  /**
+   * When the campaign was last changed, as epoch milliseconds. 0 means unknown
+   * — a campaign saved before this field existed — which is treated as stale so
+   * it gets confirmed rather than silently restored.
+   */
+  lastUpdatedAt: z.number(),
 })
 
 export type CampaignState = z.infer<typeof CampaignStateSchema>
@@ -103,6 +109,30 @@ export const NominatimResultSchema = z.object({
 })
 
 export type NominatimResult = z.infer<typeof NominatimResultSchema>
+
+export const BBoxSchema = z.object({
+  south: z.number().min(-90).max(90),
+  west: z.number().min(-180).max(180),
+  north: z.number().min(-90).max(90),
+  east: z.number().min(-180).max(180),
+})
+
+export type BBox = z.infer<typeof BBoxSchema>
+
+/**
+ * A polygon ring as [lng, lat] tuples. Four is the minimum that can enclose an
+ * area once the closing point is counted.
+ */
+export const PolygonRingSchema = z.array(z.tuple([z.number(), z.number()])).min(4)
+
+export type PolygonRing = z.infer<typeof PolygonRingSchema>
+
+/** Addresses found in an area, plus how many there were before truncation. */
+export interface AreaSearchResult {
+  addresses: SelectedAddress[]
+  /** Total matches before the campaign cap trimmed them. */
+  totalFound: number
+}
 
 export const OverpassElementSchema = z.object({
   type: z.string(),

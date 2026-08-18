@@ -4,13 +4,16 @@ import { useState, useMemo } from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { AddressList } from "./AddressList"
-import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
+import { AreaSelectControl } from "./AreaSelectControl"
+import { SavedCampaignNotice } from "./SavedCampaignNotice"
+import { ClearListButton } from "./ClearListButton"
+import { useOverpassAddresses } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
 import { loadSandboxAddresses } from "../actions"
-import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
-import { MAP_DEFAULTS, LIMITS } from "@/lib/constants"
-import type { SelectedAddress } from "@/types"
-import type { PolygonRing } from "@/lib/geocoding/overpass"
+import { useCampaignStore, campaignStore, isCampaignStale } from "@/lib/campaign-store"
+import { MAP_DEFAULTS, LIMITS, AREA_SELECT } from "@/lib/constants"
+import { circleAreaToRing, type CircleArea } from "../area-select"
+import type { BBox, SelectedAddress } from "@/types"
 
 const PropertyMap = dynamic(
   () => import("./PropertyMap").then((m) => m.PropertyMap),
@@ -20,9 +23,10 @@ const PropertyMap = dynamic(
 export function MapPageClient() {
   const router = useRouter()
   const campaignState = useCampaignStore()
-  const { addresses, loading, error, fetchPolygon, fetchViewport, clear } = useOverpassAddresses()
+  const { addresses, totalFound, loading, error, searched, fetchPolygon, fetchViewport, clear } =
+    useOverpassAddresses()
   const { results: searchResults, loading: searchLoading, search, clear: clearSearch } = useNominatimSearch()
-  const [drawing, setDrawing] = useState(false)
+  const [circle, setCircle] = useState<CircleArea | null>(null)
   const [zoom, setZoom] = useState<number>(MAP_DEFAULTS.ZOOM)
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchResults, setShowSearchResults] = useState(false)
@@ -60,9 +64,23 @@ export function MapPageClient() {
     campaignStore.toggleAddress(address)
   }
 
-  function handlePolygonComplete(ring: PolygonRing) {
+  function handleCircleCenterChange(center: [lng: number, lat: number]) {
+    setCircle((current) => ({
+      center,
+      radiusMetres: current?.radiusMetres ?? AREA_SELECT.DEFAULT_RADIUS_M,
+    }))
+  }
+
+  function handleRadiusChange(metres: number) {
+    setCircle((current) => (current ? { ...current, radiusMetres: metres } : current))
+  }
+
+  // Deliberately only on the button, not on every slider nudge — dragging the
+  // radius must not fire an Overpass query per pixel.
+  function handleSearchCircle() {
+    if (!circle) return
     clear()
-    fetchPolygon(ring)
+    fetchPolygon(circleAreaToRing(circle))
   }
 
   function handleViewportChange(bbox: BBox, newZoom: number) {
@@ -86,14 +104,17 @@ export function MapPageClient() {
   }
 
   const selectedCount = campaignState.selectedAddresses.length
-  const showZoomHint = !drawing && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
+  const showSavedNotice = isCampaignStale(campaignState)
+  const showZoomHint = !circle && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
 
   return (
     <div className="flex flex-col h-[calc(100vh-53px)]">
+      {showSavedNotice && <SavedCampaignNotice count={selectedCount} />}
+
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-sand shrink-0">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 px-4 py-2.5 bg-white border-b border-sand shrink-0">
         {/* Location search */}
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1 basis-full sm:basis-auto sm:max-w-sm min-w-0">
           <input
             type="text"
             placeholder="Search area, e.g. Hampstead, London"
@@ -124,67 +145,50 @@ export function MapPageClient() {
           )}
         </div>
 
-        {/* Draw control */}
-        <div className="flex items-center gap-2">
-          {!drawing ? (
-            <button
-              onClick={() => setDrawing(true)}
-              className="text-sm font-medium px-3 py-1.5 rounded-lg bg-coral text-white hover:bg-coral-dark transition-colors flex items-center gap-1.5"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                <path d="M12 3l8 5-3 10H7L4 8z" strokeLinejoin="round" />
-              </svg>
-              Draw area
-            </button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-coral-dark font-medium bg-cream px-3 py-1.5 rounded-lg">
-                Click and drag around the homes you want — release to finish
-              </span>
-              <button
-                onClick={() => setDrawing(false)}
-                className="text-sm text-navy-soft hover:text-navy px-2 py-1.5"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Area selection */}
+        <AreaSelectControl
+          circle={circle}
+          onRadiusChange={handleRadiusChange}
+          onSearchCircle={handleSearchCircle}
+          loading={loading}
+        />
       </div>
 
       {/* Main content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
         {/* Map */}
-        <div className="flex-1 relative">
+        <div className="flex-1 relative min-h-64">
           <PropertyMap
             addresses={pinAddresses}
             selectedIds={selectedIds}
             onToggle={handleToggle}
-            drawing={drawing}
-            onDrawingChange={setDrawing}
-            onPolygonComplete={handlePolygonComplete}
+            circle={circle}
+            onCircleCenterChange={handleCircleCenterChange}
             onViewportChange={handleViewportChange}
           />
           {showZoomHint && (
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 bg-white/95 text-navy-soft text-xs px-3 py-1.5 rounded-full shadow-md pointer-events-none">
-              Search or zoom in to see addresses — or draw an area
+              Tap the map to place a search area, or zoom in to see addresses
             </div>
           )}
         </div>
 
         {/* Sidebar */}
-        <aside className="w-72 shrink-0 bg-white border-l border-sand flex flex-col overflow-hidden">
+        <aside className="w-full lg:w-72 shrink-0 bg-white border-t lg:border-t-0 lg:border-l border-sand flex flex-col overflow-hidden max-h-72 lg:max-h-none">
           <div className="px-3 py-3 border-b border-sand">
-            <h2 className="text-sm font-semibold text-navy">
-              Selected addresses
-              {selectedCount > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-coral text-white text-xs">
-                  {selectedCount}
-                </span>
-              )}
-            </h2>
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-navy">
+                Selected addresses
+                {selectedCount > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-coral text-white text-xs">
+                    {selectedCount}
+                  </span>
+                )}
+              </h2>
+              <ClearListButton count={selectedCount} />
+            </div>
             <p className="text-xs text-navy-soft mt-0.5">
-              Click dots on the map to select addresses, or draw an area
+              Place a circle to find homes, or click dots on the map to select them
             </p>
             <button
               onClick={handleLoadDemo}
@@ -200,6 +204,9 @@ export function MapPageClient() {
             onToggle={handleToggle}
             loading={loading}
             error={error}
+            searched={searched}
+            totalFound={totalFound}
+            onLoadDemo={handleLoadDemo}
           />
           <div className="p-3 border-t border-sand mt-auto">
             <button

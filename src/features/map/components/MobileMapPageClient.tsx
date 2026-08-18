@@ -5,33 +5,34 @@ import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { BottomSheet, type SnapRequest } from "@/components/mobile/BottomSheet"
 import { MobileAddressList } from "./MobileAddressList"
-import { useOverpassAddresses, type BBox } from "../hooks/useOverpassAddresses"
+import { AreaSelectControl } from "./AreaSelectControl"
+import { SavedCampaignNotice } from "./SavedCampaignNotice"
+import { ClearListButton } from "./ClearListButton"
+import { useOverpassAddresses } from "../hooks/useOverpassAddresses"
 import { useNominatimSearch } from "../hooks/useNominatimSearch"
 import { loadSandboxAddresses } from "../actions"
-import { useCampaignStore, campaignStore } from "@/lib/campaign-store"
-import { MAP_DEFAULTS, LIMITS } from "@/lib/constants"
-import type { SelectedAddress } from "@/types"
-import type { PolygonRing } from "@/lib/geocoding/overpass"
+import { useCampaignStore, campaignStore, isCampaignStale } from "@/lib/campaign-store"
+import { MAP_DEFAULTS, LIMITS, AREA_SELECT } from "@/lib/constants"
+import { circleAreaToRing, type CircleArea } from "../area-select"
+import type { BBox, SelectedAddress } from "@/types"
 
 const PropertyMap = dynamic(
   () => import("./PropertyMap").then((m) => m.PropertyMap),
   { ssr: false, loading: () => <div className="w-full h-full bg-sand animate-pulse" /> },
 )
 
-// Keep drawn results visible above the collapsed bottom sheet when fitting the map.
-const MOBILE_FIT_PADDING = { top: 40, bottom: 240, left: 40, right: 40 }
-
 export function MobileMapPageClient() {
   const router = useRouter()
   const campaignState = useCampaignStore()
-  const { addresses, loading, error, fetchPolygon, fetchViewport, clear } = useOverpassAddresses()
+  const { addresses, totalFound, loading, error, searched, fetchPolygon, fetchViewport, clear } =
+    useOverpassAddresses()
   const {
     results: searchResults,
     loading: searchLoading,
     search,
     clear: clearSearch,
   } = useNominatimSearch()
-  const [drawing, setDrawing] = useState(false)
+  const [circle, setCircle] = useState<CircleArea | null>(null)
   const [zoom, setZoom] = useState<number>(MAP_DEFAULTS.ZOOM)
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchResults, setShowSearchResults] = useState(false)
@@ -70,16 +71,25 @@ export function MobileMapPageClient() {
     campaignStore.toggleAddress(address)
   }
 
-  function startDrawing() {
-    // Collapse the sheet so the map has maximum room while drawing.
+  function handleCircleCenterChange(center: [lng: number, lat: number]) {
+    setCircle((current) => ({
+      center,
+      radiusMetres: current?.radiusMetres ?? AREA_SELECT.DEFAULT_RADIUS_M,
+    }))
+    // Get the sheet out of the way so the circle is visible while sizing it.
     setSnapRequest({ index: 0, token: Date.now() })
-    setDrawing(true)
   }
 
-  async function handlePolygonComplete(ring: PolygonRing) {
+  function handleRadiusChange(metres: number) {
+    setCircle((current) => (current ? { ...current, radiusMetres: metres } : current))
+  }
+
+  // Deliberately only on the button, not on every slider nudge — dragging the
+  // radius must not fire an Overpass query per pixel.
+  async function handleSearchCircle() {
+    if (!circle) return
     clear()
-    await fetchPolygon(ring)
-    // Surface the results (or the error/empty message): expand the sheet to mid height.
+    await fetchPolygon(circleAreaToRing(circle))
     setSnapRequest({ index: 1, token: Date.now() })
   }
 
@@ -113,12 +123,15 @@ export function MobileMapPageClient() {
   }
 
   const selectedCount = campaignState.selectedAddresses.length
-  const showZoomHint = !drawing && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
+  const showSavedNotice = isCampaignStale(campaignState)
+  const showZoomHint = !circle && zoom < MAP_DEFAULTS.PIN_ZOOM && addresses.length === 0
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {showSavedNotice && <SavedCampaignNotice count={selectedCount} />}
+
       {/* Top control bar */}
-      <div className="px-3 py-2 bg-white border-b border-sand shrink-0 flex items-center gap-2">
+      <div className="px-3 pt-2 bg-white shrink-0 flex items-center gap-2">
         <div className="relative flex-1">
           <input
             type="text"
@@ -149,22 +162,16 @@ export function MobileMapPageClient() {
             </ul>
           )}
         </div>
-        {!drawing ? (
-          <button
-            onClick={startDrawing}
-            className="shrink-0 text-sm font-semibold px-4 py-2.5 rounded-lg bg-coral active:bg-coral-dark text-white"
-            aria-label="Draw area"
-          >
-            Draw area
-          </button>
-        ) : (
-          <button
-            onClick={() => setDrawing(false)}
-            className="shrink-0 text-sm font-medium px-4 py-2.5 rounded-lg border border-sand text-navy-soft"
-          >
-            Cancel
-          </button>
-        )}
+      </div>
+
+      <div className="px-3 pb-2 bg-white border-b border-sand shrink-0">
+        <AreaSelectControl
+          circle={circle}
+          onRadiusChange={handleRadiusChange}
+          onSearchCircle={handleSearchCircle}
+          loading={loading}
+          compact
+        />
       </div>
 
       {/* Map + sheet */}
@@ -174,25 +181,17 @@ export function MobileMapPageClient() {
             addresses={pinAddresses}
             selectedIds={selectedIds}
             onToggle={handleToggle}
-            drawing={drawing}
-            onDrawingChange={setDrawing}
-            onPolygonComplete={handlePolygonComplete}
+            circle={circle}
+            onCircleCenterChange={handleCircleCenterChange}
             onViewportChange={handleViewportChange}
             touchTargets
             showNavControl={false}
-            fitPadding={MOBILE_FIT_PADDING}
           />
         </div>
 
-        {drawing && (
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-max max-w-[85%] bg-coral text-white text-xs font-medium px-3 py-1.5 rounded-full shadow-md pointer-events-none text-center">
-            Draw around the homes you want — lift your finger to finish
-          </div>
-        )}
-
         {showZoomHint && (
           <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-max max-w-[85%] bg-white/95 text-navy-soft text-xs px-3 py-1.5 rounded-full shadow-md pointer-events-none text-center">
-            Search or zoom in to see addresses — or draw an area
+            Tap the map to place a search area, or zoom in to see addresses
           </div>
         )}
 
@@ -211,9 +210,12 @@ export function MobileMapPageClient() {
                         ? `${selectedCount} selected`
                         : "Selected addresses"}
                 </div>
-                {!loading && addresses.length > 0 && selectedCount > 0 && (
-                  <div className="text-xs text-coral font-medium">
-                    {selectedCount} selected
+                {!loading && selectedCount > 0 && (
+                  <div className="flex items-center gap-2 text-xs">
+                    {addresses.length > 0 && (
+                      <span className="text-coral font-medium">{selectedCount} selected</span>
+                    )}
+                    <ClearListButton count={selectedCount} />
                   </div>
                 )}
               </div>
@@ -241,7 +243,7 @@ export function MobileMapPageClient() {
                   ? "Select at least one address"
                   : `Next: Refine your results (${selectedCount}) →`}
               </button>
-              {selectedCount === 0 && (
+              {addresses.length === 0 && (
                 <button
                   onClick={handleLoadDemo}
                   disabled={demoLoading}
@@ -259,6 +261,9 @@ export function MobileMapPageClient() {
             onToggle={handleToggle}
             loading={loading}
             error={error}
+            searched={searched}
+            totalFound={totalFound}
+            onLoadDemo={handleLoadDemo}
           />
         </BottomSheet>
       </div>
