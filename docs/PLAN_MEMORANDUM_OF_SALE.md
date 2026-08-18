@@ -210,20 +210,23 @@ Each commit passes `npx tsc --noEmit`, `npm run lint`, `npm run build` and `npm 
 
 ---
 
-## 9. Open questions
+## 9. Decisions taken
 
-1. **Component tests.** Adding React Testing Library + jsdom would let the two-party flow be
-   tested end to end rather than only its pure parts. That is three new dev dependencies and a
-   Vitest config change. Worth doing, but a separate decision.
-2. **Mobile route.** The app currently duplicates every page under `/m/*`. For a form-heavy
-   page that means maintaining two copies of a long form, which is where bugs breed. One
-   responsive page is the better engineering call, and it is what §4 assumes — but it does
-   deviate from the established pattern.
-3. **The typed-name check.** Whether the acknowledgement name must match the party's own name
-   field. A hard match is a meaningful integrity gesture but breaks on middle names and
-   initials. Proposal: require non-empty, and note a mismatch without blocking.
-4. **Will's copy.** The document has legal-ish framing text that Will may want to word himself.
-   Ships with mine, clearly marked.
+1. **Component tests: yes.** React Testing Library, `@testing-library/user-event` and jsdom go
+   in, and the Vitest config splits so pure tests keep the fast node environment while
+   component tests get a browser-like one. This is the feature where a silent regression costs
+   someone their sale paperwork, so the handoff gets covered end to end rather than only
+   through its pure parts.
+2. **One responsive page, not an `/m/*` duplicate.** It deviates from the pattern the rest of
+   the app follows, but a long form maintained in two copies is where bugs breed — and the UA
+   sniffing behind `/m/*` has already proved fragile once.
+3. **`@react-pdf/renderer`, lazy-loaded** via `next/dynamic` on click, per §7.
+4. **The typed-name check is soft.** Non-empty is required; a mismatch against the party's own
+   name field is pointed out but does not block, because middle names and initials would make a
+   hard match wrong more often than right.
+
+Still Will's to answer: whether he wants to word the document's framing text himself. It ships
+with mine, clearly marked.
 
 ---
 
