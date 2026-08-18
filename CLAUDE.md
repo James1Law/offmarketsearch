@@ -153,8 +153,23 @@ Name is always written **Offline.homes** (capital O, with the dot; the dot rende
 
 ## Critical constraints
 
-### GDPR — Mode A only
-Letters must be addressed to "The Homeowner" or "The Occupier". No named owner data stored or transmitted.
+### GDPR — Mode A only, for letters
+Letters must be addressed to "The Homeowner" or "The Occupier". Never acquire, store or transmit
+a homeowner's name for the purpose of addressing a letter. This blocks Mode B — buying Land
+Registry or similar owner data to write to strangers by name — and it is absolute.
+
+The rule is about **people we contact without their knowledge**. It does not prohibit a user
+entering their own details, or the details of someone they are already dealing with, into a
+document they are creating themselves. The memorandum of sale is the case in point: a seller
+and a buyer who have already met fill in their own names, their conveyancers and their terms.
+The distinction is consent and origin, not whether a name appears.
+
+Where a feature handles named parties on that basis:
+- Only ever data the user typed themselves, never data we sourced about a third party.
+- Prefer designs that keep it off our servers entirely — the memorandum travels in a URL
+  fragment, which is never sent in the HTTP request, so we never receive or log it.
+- If a future feature does need to store it, that is the point at which a privacy notice, a
+  retention policy and RLS become prerequisites rather than follow-ups.
 
 ### Pricing floor
 Minimum £2.50/letter. Packs: 5 for £14.99, 10 for £24.99, 25 for £49.99. All prices live in `lib/constants.ts`.
@@ -183,6 +198,10 @@ supabase migration new <name>   # create a new migration
 - `/letter` — template editor + HTML letter preview
 - `/basket` — address list, pricing, mock checkout CTA
 - `/confirm` — order confirmation (mock)
+- `/sell` — guide to selling without an estate agent, with referral partners (`lib/referrals.ts`)
+- `/memorandum` — free memorandum of sale builder (seller side)
+- `/memorandum/confirm` — the counterparty's side; the document arrives in the URL fragment,
+  so it never reaches the server. Plan and rationale: `docs/PLAN_MEMORANDUM_OF_SALE.md`
 
 State flows through `lib/campaign-store.ts` (localStorage-backed `useSyncExternalStore`).
 Map tiles default to CartoDB Voyager raster (no key). Set `NEXT_PUBLIC_MAPTILER_API_KEY` for vector tiles.

@@ -71,13 +71,21 @@ export default function SellPage() {
           <OnwardMove />
 
           <div className="mt-12 rounded-xl border border-sand bg-cream px-5 py-5">
-            <h2 className="font-semibold text-navy">Free memorandum of sale template</h2>
+            <h2 className="font-semibold text-navy">Free memorandum of sale</h2>
             <p className="text-sm text-navy-soft mt-1.5 leading-relaxed">
               Step 5 needs a memorandum of sale — the short document that records what you and
-              your buyer have agreed. We&apos;re building a free tool that fills one out and
-              sends it to both sides for confirmation.
+              your buyer have agreed. Fill one out, send it to your buyer to confirm, and both of
+              you get a PDF to pass to your conveyancers.
             </p>
-            <p className="text-sm text-coral-dark font-medium mt-2">Coming soon</p>
+            <p className="text-xs text-navy-soft/80 mt-2 leading-relaxed">
+              Free, no account needed, and nothing you type is stored on our servers.
+            </p>
+            <Link
+              href="/memorandum"
+              className="inline-flex items-center gap-1 mt-3 text-sm font-semibold text-coral hover:text-coral-dark hover:underline"
+            >
+              Create a memorandum of sale →
+            </Link>
           </div>
 
           <p className="text-xs text-navy-soft/70 mt-10 leading-relaxed">{SELL_DISCLAIMER}</p>
