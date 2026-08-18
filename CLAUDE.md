@@ -198,6 +198,10 @@ supabase migration new <name>   # create a new migration
 - `/letter` — template editor + HTML letter preview
 - `/basket` — address list, pricing, mock checkout CTA
 - `/confirm` — order confirmation (mock)
+- `/sell` — guide to selling without an estate agent, with referral partners (`lib/referrals.ts`)
+- `/memorandum` — free memorandum of sale builder (seller side)
+- `/memorandum/confirm` — the counterparty's side; the document arrives in the URL fragment,
+  so it never reaches the server. Plan and rationale: `docs/PLAN_MEMORANDUM_OF_SALE.md`
 
 State flows through `lib/campaign-store.ts` (localStorage-backed `useSyncExternalStore`).
 Map tiles default to CartoDB Voyager raster (no key). Set `NEXT_PUBLIC_MAPTILER_API_KEY` for vector tiles.

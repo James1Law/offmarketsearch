@@ -1,6 +1,6 @@
 # Plan — Memorandum of Sale builder (C1, no backend)
 
-Status: **proposed, awaiting confirmation**
+Status: **built** — see PR on `claude/home-sale-without-agent-cc5fl1`
 Date: 2026-08-18
 Source: Will's voice note (16 Aug), the WhatsApp thread, and C1 in `docs/PLAN_MAP_SELL_MOS.md`.
 
@@ -207,6 +207,24 @@ Everything decision-carrying is therefore a pure function, tested directly:
   not-instructed-conveyancer case reading properly.
 
 Each commit passes `npx tsc --noEmit`, `npm run lint`, `npm run build` and `npm test`.
+
+---
+
+## 8a. What the tests caught
+
+Recorded because the plan claimed these areas were covered and they were not:
+
+- **The size-budget test was checking nothing.** Proving the too-long flag fires
+  needs genuinely incompressible text, and three attempts failed to produce any: an index
+  modulo repeats every 90 characters, a plain LCG overflows `MAX_SAFE_INTEGER` and
+  degenerates, and seeding every field alike makes the short ones prefixes of the long ones.
+  All three gzipped to almost nothing and passed.
+- **`pipeThrough` leaked unhandled rejections.** Feeding it something that is not gzip rejects
+  on both sides of the stream, and ignoring the write side surfaced as an unhandled rejection
+  rather than the named failure the caller expects.
+- **Field hints were part of each field's accessible name**, because they sat inside the
+  `<label>`. A screen reader announced the hint as the label. Now tied on with
+  `aria-describedby`.
 
 ---
 

@@ -66,6 +66,7 @@ export const SELL_SECTIONS: readonly SellSection[] = [
         title: "Create a memorandum of sale",
         body: [
           "Prepare a simple document confirming the property address, agreed price, buyer and seller details, and the basic terms of the sale. Send it to both parties and their conveyancers.",
+          "We have a free tool for this — fill it in, send it to your buyer to confirm, and you both get a PDF to forward on.",
         ],
       },
       {
